@@ -1,0 +1,28 @@
+{
+  "name": "proyectofinal",
+  "version": "1.0.0",
+  "description": "Proyecto final de Servidor, Cliente e Interfaces",
+  "keywords": [
+    "ES"
+  ],
+  "license": "ISC",
+  "author": "Marcos Ruiz Clemente",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "moment": "^2.30.1",
+    "mysql2": "^3.12.0",
+    "pug": "^3.0.3",
+    "sequelize": "^6.37.5",
+    "bootstrap": "^5.1.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
