@@ -14,6 +14,8 @@ app.use(express.static("public"));
 
 app.use("/icons", express.static("node_modules/bootstrap-icons/font"));
 
+app.use("/estilo", express.static("public"))
+
 app.use((req, res, next) => {
     res.locals.year = new Date().getFullYear();
     next();
