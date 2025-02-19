@@ -3,12 +3,19 @@ extends layouts/head
 block contenido
 
     main.container.py-4(style="min-height: 80vh")
-        h1 Sobre nosotros
+        
         .row 
+            h1 Sobre nosotros
             .col-md-6.justify-content-center.aling-items-center
                 img.img-fluid.rounded(src="/Imagen/nosotros.webp", alt="Imagen de nosotros")
             .col-md-6.justify-content-center.aling-items-center
                 p Lorem ipsum odor amet, consectetuer adipiscing elit. Laoreet ac nibh sit facilisi convallis. Morbi aptent urna mi faucibus nisi augue mauris varius. Duis semper sodales sem fusce mi aliquet nunc. Mattis nulla imperdiet tincidunt enim semper aptent blandit. Urna torquent aliquam elementum efficitur sollicitudin.
+        .row.my-3
         .row
-            .col-md-12
-                
+            .col-12
+                h1.text-md-end Nuestro proyecto
+        .row.d-flex.flex-md-row-reverse
+            .col-md-6
+                img.img-fluid.rounded(src="/Imagen/proyecto.webp", alt="Imagen de nosotros")
+            .col-md-6
+                p Lorem ipsum odor amet, consectetuer adipiscing elit. Laoreet ac nibh sit facilisi convallis. Morbi aptent urna mi faucibus nisi augue mauris varius. Duis semper sodales sem fusce mi aliquet nunc. Mattis nulla imperdiet tincidunt enim semper aptent blandit. Urna torquent aliquam elementum efficitur sollicitudin.

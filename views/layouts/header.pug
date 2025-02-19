@@ -1,4 +1,4 @@
-header.container-fluid
+header.container-fluid.sticky-top
     .row.p-1.pb-3
         .col-md-2.d-flex.justify-content-center.align-items-center
             a(href="") 
@@ -9,15 +9,13 @@ header.container-fluid
                     path(d='M84 144 Q129 184, 174 144' stroke='#FA5A0A' stroke-width='10' fill='none')
                     text(x='129' y='228' font-size='36' font-family='Arial' fill='#FA5A0A' text-anchor='middle') Shared Control
 
-        .col-md-7.d-flex.justify-content-center.align-items-center
-            h2 Bienvenido a la página de de inicio (Aqui se mostrara donde nos encontramos)
-        .col-md-3.justify-content-end.mt-2
-            form.row.g-3
-                .col-md-6.col-12
-                    label.visually-hidden(for='staticEmail2') Email
-                    input#staticEmail2.form-control(type='text' value='' placeholder="E-mail")
-                .col-md-6.col-12
-                    label.visually-hidden(for='inputPassword2') Password
-                    input#inputPassword2.form-control(type='password' placeholder='Password')                  
-                .col-12.d-flex.justify-content-center.align-items-center.mt-2
-                        button.btn.btn-primary(type='submit') Iniciar sesion
+        .col-md-3.d-flex.justify-content-center.align-items-center.gap-2
+            include ./botones/botones.pug
+        .col-md-4.d-flex.justify-content-center.align-items-center
+            h3 #{titulo}
+        .col-md-3.d-flex.align-items-center.justify-content-end.mt-2.gap-2
+            if(identificado)
+                i.bi.bi-person-circle
+            else
+                a.btn.btn-primary(href="") Inicio de sesión 
+                a.btn.btn-primary(href="") Registro
