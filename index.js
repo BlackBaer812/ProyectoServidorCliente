@@ -1,6 +1,10 @@
 import express from "express";
 import router from "./routes/index.js";
 import db from "./config/db.js"
+import session from "express-session";
+import dotenv from "dotenv";
+
+dotenv.config()
 
 const app = express();
 
@@ -15,6 +19,13 @@ app.use(express.static("public"));
 app.use("/icons", express.static("node_modules/bootstrap-icons/font"));
 
 app.use("/estilo", express.static("public"))
+
+app.use(session({
+    secret: process.env.SESSION_SECRET, // Clave secreta para firmar la sesión
+    resave: false,              // No guardar la sesión si no se ha modificado
+    saveUninitialized: true,    // Guardar la sesión si no ha sido modificada
+    cookie: { secure: false }   // 'secure' debería ser 'true' si usas HTTPS
+}));
 
 app.use((req, res, next) => {
     res.locals.identificado = false;

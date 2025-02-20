@@ -4,25 +4,33 @@ block contenido
 
     main.container.d-flex.justify-content-center.p-2(style="min-height: 81.7vh")
         .row.d-flex.align-items-center.justify-content-center(style="min-height:100%; width: 100%")
-            .col-6.d-flex.justify-content-center.align-items-center
-                form.row.g-3.border.p-1(action="/registro" method="post")
+            .col-8.d-flex.flex-column.justify-content-center.align-items-center
+                
+                form.row.g-3.border.p-1.mt-4(action="/registro" method="post")
+                    if mensaje
+                        div.bg-warning.mb-1.p-1
+                            ul 
+                                p.text-dark.fw-bold Su usuario no ha sido dado de alta por alguna de estas razones:
+                                li.text-dark El usuario introducido ya existe.
+                                li.text-dark El email ya esta en uso.
+                                li.text-dark El número de telefono ya esta en uso. 
                     .row.my-1.d-flex.gap-1
                         .col-md-6.col-12
-                            label.visually-hidden(for='staticEmail2') Usuario
-                            input#staticEmail2.form-control(type='text' name="usuario" value='' placeholder="Usuario")
+                            label.visually-hidden(for='usuario') Usuario
+                            input#usuario.form-control(type='text' name="usuario" placeholder="Usuario" value=usuario)
                         .col-md.col-12
-                            label.visually-hidden(for='inputPassword2') Password
-                            input#inputPassword2.form-control(type='password' name="password" placeholder='Password')
+                            label.visually-hidden(for='password') Password
+                            input#password.form-control(type='password' name="password" placeholder='Password' )
                     .row.my-1.d-flex.gap-1
                         .col-md-6.col-12
-                            label.visually-hidden(for='staticEmail2') Email
-                            input#staticEmail2.form-control(type='text' value='' name="email" placeholder="E-mail")
+                            label.visually-hidden(for='email') Email
+                            input#email.form-control(type='text' name="email" placeholder="E-mail" value=email)
                         .col-md.col-12
-                            label.visually-hidden(for='inputPassword2') Nombre
-                            input#inputPassword2.form-control(type='text' name="nombre" placeholder='Nombre')
+                            label.visually-hidden(for='nombre') Nombre
+                            input#nombre.form-control(type='text' name="nombre" placeholder='Nombre' value=nom)
                     .row.my-1.d-flex.gap-1.justify-content-center
                         .col-md-6.col-12 
-                            label.visually-hidden(for='inputPassword2') Telefono
-                            input#inputPassword2.form-control(type='number' name="telefono" placeholder='Nº de Telefono' max=999999999 min=111111111)           
+                            label.visually-hidden(for='telefono') Telefono
+                            input#telefono.form-control(type='number' name="telefono" placeholder='Nº de Telefono' max=999999999 min=111111111 value=telf)           
                     .col-12.d-flex.justify-content-center.align-items-center.mt-2
                             button.btn.btn-primary(type='submit') Registrarse
