@@ -23,6 +23,6 @@ block contenido
                     .row.my-1.d-flex.gap-1.justify-content-center
                         .col-md-6.col-12 
                             label.visually-hidden(for='inputPassword2') Telefono
-                            input#inputPassword2.form-control(type='text' name="telefono" placeholder='Nº de Telefono')           
+                            input#inputPassword2.form-control(type='number' name="telefono" placeholder='Nº de Telefono' max=999999999 min=111111111)           
                     .col-12.d-flex.justify-content-center.align-items-center.mt-2
                             button.btn.btn-primary(type='submit') Registrarse
