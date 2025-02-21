@@ -228,40 +228,56 @@ const volverPPrincial = async(req,res) =>{
 }
 
 const crearGrupo = async(req,res) =>{
-    console.log(req.body.nGrup, req.session.usuario)
+    if(identificacion(req)){
+        console.log(req.body.nGrup, req.session.usuario)
 
-    let nombreG = req.body.nGrup;
-    const user = req.session.usuario;
+        let nombreG = req.body.nGrup;
+        const user = req.session.usuario;
 
-    const envio = await grupos(req.session.usuario);
+        try{
+            await db.execute("CALL crearGrupo(?,?)",[
+                nombreG,
+                user
+            ])
+            
+            const envio = await grupos(req.session.usuario);
 
-    try{
-        await db.execute("CALL crearGrupo(?,?)",[
-            nombreG,
-            user
-        ])
-        
-        res.render("principal",{
-            titulo: "Pagina de usuario",
-            identificado: identificacion(req),
-            grupos: envio
+            res.render("principal",{
+                titulo: "Pagina de usuario",
+                identificado: identificacion(req),
+                grupos: envio
+            })
+        }
+        catch(err){
+            console.error(err)
+            const envio = await grupos(req.session.usuario);
+
+            res.render("principal",{
+                titulo: "Pagina de usuario",
+                identificado: identificacion(req),
+                grupos: envio
+            })
+        }
+    }
+    else{
+        res.render("indice",{
+            titulo:"Inicio",
+            identificado: identificacion(req)
         })
     }
-    catch(err){
-        console.error(err)
-        res.render("principal",{
-            titulo: "Pagina de usuario",
-            identificado: identificacion(req),
-            grupos: envio
-        })
-    }
-    
 }
 
 const accesoGrupo = async(req,res) =>{
 
     if(identificacion(req)){
-        res.send(req.params.idGrup)
+        const idG = req.params.idGrup;
+        const idP = req.session.usuario;
+
+
+        res.render("grupoP",{
+            titulo:"Inicio",
+            identificado: identificacion(req)
+        })
     }
     else{
         res.render("indice",{

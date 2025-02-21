@@ -24,7 +24,10 @@ app.use(session({
     secret: process.env.SESSION_SECRET, // Clave secreta para firmar la sesión
     resave: false,              // No guardar la sesión si no se ha modificado
     saveUninitialized: true,    // Guardar la sesión si no ha sido modificada
-    cookie: { secure: false }   // 'secure' debería ser 'true' si usas HTTPS
+    cookie: { 
+        secure: false, 
+        maxAge: 3600000
+    }   // 'secure' debería ser 'true' si usas HTTPS
 }));
 
 app.use((req, res, next) => {
