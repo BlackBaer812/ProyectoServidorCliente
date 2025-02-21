@@ -1,0 +1,21 @@
+extends layouts/head
+
+block contenido
+    main.container.p-2(style="min-height: 81.7vh")
+        .row
+            .col-12.d-flex.justify-content-end.m-2
+                a.btn.btn-success(href="/crearGrupo") Crear grupo
+        .row.d-flex.justify-content-center.border(style="min-height:100%; width: 100%")
+            .col-8.d-flex.flex-column
+                if grupos.length>0 
+                    for grupo in grupos
+                        .row 
+                            .col-12.border.my-1
+                                .row.p-2.fila
+                                    .col-4
+                                        h3 #{grupo.nombre}
+                                    .col-8.d-flex.justify-content-evenly
+                                        a.btn.btn-primary.mx-2(href="") Acceder
+                                        a.btn.btn-primary.mx-2(href="") Añadir factura
+                                        a.btn.btn-primary.mx-2(href="") Salir
+        

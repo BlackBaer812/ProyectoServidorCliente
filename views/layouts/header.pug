@@ -15,7 +15,8 @@ header.container-fluid.sticky-top
             h3 #{titulo}
         .col-md-3.d-flex.align-items-center.justify-content-end.mt-2.gap-2
             if(identificado)
-                i.bi.bi-person-circle
+                a(href="/cerrarSesion")
+                    i.bi.bi-person-circle#icoUser
             else
                 a.btn.btn-primary(href="/iSesion") Inicio de sesión 
                 a.btn.btn-primary(href="/registro") Registro

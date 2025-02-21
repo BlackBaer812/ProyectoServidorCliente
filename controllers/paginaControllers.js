@@ -40,13 +40,22 @@ const iSesion = async(req,res)=>{
 
         const [rows] = await db.execute("SELECT @salida AS salida");
 
-        console.log(rows[0].salida)
         const autentificado = rows[0].salida == 1? true:false;
         
         if(autentificado){
             req.session.usuario = req.body.usuario;
 
-            res.send("Identificado como: " + req.session.usuario)
+            const grupos = await db.query("select grupo.nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ?",[
+                req.session.usuario
+            ])
+
+            const envio = grupos[0];
+
+            res.render("principal",{
+                titulo: "Pagina de usuario",
+                identificado: identificacion(req),
+                grupos: envio
+            })
         }
         else{
             
@@ -63,6 +72,16 @@ const iSesion = async(req,res)=>{
     catch(err){
         console.error(err)
     }
+}
+
+const cerrarSesion = async (req,res) => {
+    req.session.destroy(err =>{
+        if (err) {
+            console.error("Error al cerrar sesión:", err);
+            return res.status(500).send("Error al cerrar sesión");
+        }
+        res.redirect("/");
+    })
 }
 
 const verifica = async(req,res)=>{
@@ -86,14 +105,6 @@ const verifica = async(req,res)=>{
 
 const registro = async (req,res)=>{
 
-    const generarAleatorio = () => {
-        const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        let resultado = "";
-        for (let i = 0; i < 8; i++) {
-            resultado += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
-        }
-        return resultado;
-    };
     
     let aleatorio = generarAleatorio();
 
@@ -184,6 +195,49 @@ const registro = async (req,res)=>{
     }
 }
 
+const pagCrearGrupo = async(req,res) =>{
+    if(identificacion(req)){
+        res.render("crearGrupo",{
+            titulo:"Crear grupo",
+            identificado: identificacion(req)
+        })
+    }
+    else{//Si no se esta registrado o con la sesión iniciada, se vuelve a inicio
+        res.render("indice",{
+            titulo:"Inicio",
+            identificado: identificacion(req)
+        })
+    }
+
+
+}
+
+const volverPPrincial = async(req,res) =>{
+    if(identificacion(req)){
+        const grupos = await db.query("select grupo.nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ?",[
+            req.session.usuario
+        ])
+
+        const envio = grupos[0];
+
+        res.render("principal",{
+            titulo: "Pagina de usuario",
+            identificado: identificacion(req),
+            grupos: envio
+        })
+    }
+    else{
+        res.render("indice",{
+            titulo:"Inicio",
+            identificado: identificacion(req)
+        })
+    }
+}
+
+const crearGrupo = async(req,res) =>{
+    
+}
+
 const recuperacion = async(req,res) => {
 
 }
@@ -195,6 +249,14 @@ function identificacion(request){
     }
     return salida;
 }
+function generarAleatorio(){
+    const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let resultado = "";
+    for (let i = 0; i < 8; i++) {
+        resultado += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+    }
+    return resultado;
+};
 
 export{
     paginaInicio,
@@ -203,5 +265,9 @@ export{
     iSesion,
     registro,
     verifica,
+    cerrarSesion,
+    pagCrearGrupo,
+    volverPPrincial,
+    crearGrupo,
     recuperacion
 }

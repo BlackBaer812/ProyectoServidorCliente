@@ -1,0 +1,23 @@
+extends layouts/head
+
+block contenido
+    main.container.d-flex.flex-column.justify-content-center.p-2
+        .row.d-flex.align-items-center.justify-content-center
+            .col-8.d-flex.align-items-center.justify-content-center.m-4
+                a.btn.btn-primary(href="/volver") Volver    
+        .row
+            .col(style="min-height: 70.6vh")
+                .row.d-flex.align-items-center.justify-content-center(style="min-height:75%; width: 100%")
+                    .col-8.d-flex.flex-column.justify-content-center.align-items-center.border.border-success.border-2.rounded-pill.bg-success-subtle.p-5(style="height:100%; width: 75%")
+                        form.row.g-3.p-1(action="/crearGrupo" method="post")
+                            if mensaje
+                                div.bg-warning.mb-1.p-1
+                                    ul 
+                                        p.text-dark.fw-bold El grupo no se ha podido crear 
+                            .row.my-1.d-flex.gap-1
+                                .col-12
+                                    label.visually-hidden(for='nGrup') Nombre del grupo
+                                    input#nGrup.form-control(type='text' name="nGrup" placeholder="Nombre del grupo" value=nGrup)         
+                                .col-12.d-flex.justify-content-center.align-items-center.mt-2
+                                        button.btn.btn-primary(type='submit') Registrar grupo
+        
