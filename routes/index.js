@@ -1,5 +1,5 @@
 import express from 'express';
-import { cerrarSesion, pagCrearGrupo, iSesion, paginaInicio, paginaISesion, paginaRegistro, recuperacion, registro, verifica, volverPPrincial, crearGrupo } from '../controllers/paginaControllers.js';
+import { cerrarSesion, pagCrearGrupo, iSesion, paginaInicio, paginaISesion, paginaRegistro, recuperacion, registro, verifica, volverPPrincial, crearGrupo, accesoGrupo } from '../controllers/paginaControllers.js';
 
 const router = express.Router();
 
@@ -25,6 +25,8 @@ router.get("/crearGrupo",pagCrearGrupo)
 router.post("/crearGrupo",crearGrupo)
 
 router.get("/volver", volverPPrincial)
+
+router.get("/accesoGrupo/:idGrup", accesoGrupo)
 
 
 export default router;

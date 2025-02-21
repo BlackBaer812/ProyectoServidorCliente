@@ -45,11 +45,7 @@ const iSesion = async(req,res)=>{
         if(autentificado){
             req.session.usuario = req.body.usuario;
 
-            const grupos = await db.query("select grupo.nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ?",[
-                req.session.usuario
-            ])
-
-            const envio = grupos[0];
+            const envio = await grupos(req.session.usuario);
 
             res.render("principal",{
                 titulo: "Pagina de usuario",
@@ -214,11 +210,8 @@ const pagCrearGrupo = async(req,res) =>{
 
 const volverPPrincial = async(req,res) =>{
     if(identificacion(req)){
-        const grupos = await db.query("select grupo.nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ?",[
-            req.session.usuario
-        ])
-
-        const envio = grupos[0];
+        
+        const envio = await grupos(req.session.usuario);
 
         res.render("principal",{
             titulo: "Pagina de usuario",
@@ -235,11 +228,59 @@ const volverPPrincial = async(req,res) =>{
 }
 
 const crearGrupo = async(req,res) =>{
+    console.log(req.body.nGrup, req.session.usuario)
+
+    let nombreG = req.body.nGrup;
+    const user = req.session.usuario;
+
+    const envio = await grupos(req.session.usuario);
+
+    try{
+        await db.execute("CALL crearGrupo(?,?)",[
+            nombreG,
+            user
+        ])
+        
+        res.render("principal",{
+            titulo: "Pagina de usuario",
+            identificado: identificacion(req),
+            grupos: envio
+        })
+    }
+    catch(err){
+        console.error(err)
+        res.render("principal",{
+            titulo: "Pagina de usuario",
+            identificado: identificacion(req),
+            grupos: envio
+        })
+    }
     
+}
+
+const accesoGrupo = async(req,res) =>{
+
+    if(identificacion(req)){
+        res.send(req.params.idGrup)
+    }
+    else{
+        res.render("indice",{
+            titulo:"Inicio",
+            identificado: identificacion(req)
+        })
+    }
 }
 
 const recuperacion = async(req,res) => {
 
+}
+
+async function grupos(usuario){
+    const grupos = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ?",[
+        usuario
+    ])
+
+    return grupos[0];
 }
 
 function identificacion(request){
@@ -269,5 +310,6 @@ export{
     pagCrearGrupo,
     volverPPrincial,
     crearGrupo,
+    accesoGrupo,
     recuperacion
 }
