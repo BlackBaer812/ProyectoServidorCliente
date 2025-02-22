@@ -272,12 +272,41 @@ const accesoGrupo = async(req,res) =>{
     if(identificacion(req)){
         const idG = req.params.idGrup;
         const idP = req.session.usuario;
+        
+        try{
+            
+            await db.execute("CALL sActual (?,?,@sPersona, @sGrupo, @tPersonas)",[
+                idG,
+                idP
+            ])
+
+            const [rows] = await db.query("SELECT @sPersona as sPersona, @sGrupo as sGrupo, @tPersonas as tPersonas")
+
+            const [nGrup] = await db.query("SELECT nombre FROM  grupo where grupoid = ?",[
+                idG
+            ])
 
 
-        res.render("grupoP",{
-            titulo:"Inicio",
-            identificado: identificacion(req)
-        })
+            console.log(rows[0],nGrup[0])
+
+            if(rows[0].tPersonas != 1){
+                res.render("grupoP",{
+                    titulo:"Pagina del grupo " + nGrup[0].nombre,
+                    identificado: identificacion(req),
+                    datos: rows[0]
+                })
+            }
+            else{
+                res.render("grupoP",{
+                    titulo:"Pagina del grupo " + nGrup[0].nombre,
+                    identificado: identificacion(req),
+                })
+            }
+        }
+        catch(err){
+            console.log(err)
+        }
+        
     }
     else{
         res.render("indice",{
