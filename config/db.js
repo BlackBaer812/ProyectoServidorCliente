@@ -13,4 +13,14 @@ const db = mysql2.createPool({
     queueLimit: 0
 });
 
+(async () => {
+    try {
+        const connection = await db.getConnection();
+        console.log("✅ Conectado a la base de datos MySQL");
+        connection.release(); // Liberar la conexión al pool
+    } catch (err) {
+        console.error("❌ Error de conexión:", err);
+    }
+})();
+
 export default db;
