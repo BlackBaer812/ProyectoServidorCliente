@@ -1,6 +1,5 @@
 import express from "express";
 import router from "./routes/index.js";
-import db from "./config/db.js"
 import session from "express-session";
 import dotenv from "dotenv";
 
@@ -31,7 +30,6 @@ app.use(session({
 }));
 
 app.use((req, res, next) => {
-    res.locals.identificado = false;
     res.locals.nombre = "Shared Control";
     res.locals.year = new Date().getFullYear();
     next();
