@@ -282,19 +282,26 @@ const accesoGrupo = async(req,res) =>{
 
             let resultados = await Promise.all([
                 db.query("SELECT @sPersona as sPersona, @sGrupo as sGrupo, @tPersonas as tPersonas"),
-                db.query("SELECT compra.nombre,compra.valor,compra.Comentario, grupo.nombre as 'Grupo', tipo.nombre as 'Tipo' FROM  grupo inner join compra inner join tipo on grupo.grupoid = compra.idGrupo and compra.idTipo = tipo.idtipo where grupoid = ?",[
+                db.query("SELECT nombre FROM grupo where grupoid = ?",[
                     idG
                 ]),
-                db.query("SELECT * FROM compra where idGrupo = ?",[
+                db.query("SELECT compra.nombre,compra.valor,compra.Comentario, tipo.nombre as 'Tipo' FROM  grupo inner join compra inner join tipo on grupo.grupoid = compra.idGrupo and compra.idTipo = tipo.idtipo where grupoid = ?",[
                     idG
-                ])
+                ]),
+                
             ])
+
+            let sActual = resultados[0][0][0].sPersona - resultados[0][0][0].sGrupo/resultados[0][0][0].tPersonas;
+            
+            req.session.grupo = idG;
 
             if(resultados[0][0][0].tPersonas != 1){
                 res.render("grupoP",{
                     titulo:"Pagina del grupo " + resultados[1][0][0].nombre,
+                    idG: req.session.grupo,
                     identificado: identificacion(req),
-                    datos: resultados[0][0][0]
+                    sActual: sActual,
+                    datos: resultados[2][0]
                 })
             }
             else{
