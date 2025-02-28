@@ -285,23 +285,32 @@ const accesoGrupo = async(req,res) =>{
                 db.query("SELECT nombre FROM grupo where grupoid = ?",[
                     idG
                 ]),
-                db.query("SELECT compra.nombre,compra.valor,compra.Comentario, tipo.nombre as 'Tipo' FROM  grupo inner join compra inner join tipo on grupo.grupoid = compra.idGrupo and compra.idTipo = tipo.idtipo where grupoid = ?",[
+                db.query("SELECT idCompra,compra.nombre,compra.valor,compra.Comentario, tipo.nombre as 'Tipo' FROM  grupo inner join compra inner join tipo on grupo.grupoid = compra.idGrupo and compra.idTipo = tipo.idtipo where grupoid = ?",[
                     idG
                 ]),
-                
+                db.query("SELECT SUM(Valor) as posicion ,usuarios.nombre from compra inner join usuarios on usuarios.usuario = compra.usuario where idGrupo = ? group by usuarios.usuario",[
+                    idG
+                ])
             ])
 
-            let sActual = resultados[0][0][0].sPersona - resultados[0][0][0].sGrupo/resultados[0][0][0].tPersonas;
+            let gMedios = resultados[0][0][0].sGrupo/resultados[0][0][0].tPersonas
+
+            let sActual = resultados[0][0][0].sPersona - gMedios;
             
             req.session.grupo = idG;
+
+            console.log(resultados[2][0])
 
             if(resultados[0][0][0].tPersonas != 1){
                 res.render("grupoP",{
                     titulo:"Pagina del grupo " + resultados[1][0][0].nombre,
-                    idG: req.session.grupo,
+                    idP,
+                    idG,
                     identificado: identificacion(req),
                     sActual: sActual,
-                    datos: resultados[2][0]
+                    gMedios : gMedios,
+                    datos: resultados[2][0],
+                    datosP: resultados[3][0]
                 })
             }
             else{
@@ -322,6 +331,10 @@ const accesoGrupo = async(req,res) =>{
             identificado: identificacion(req)
         })
     }
+}
+
+const crearFactura = async(req,res) =>{
+
 }
 
 const recuperacion = async(req,res) => {
@@ -364,5 +377,6 @@ export{
     volverPPrincial,
     crearGrupo,
     accesoGrupo,
+    crearFactura,
     recuperacion
 }

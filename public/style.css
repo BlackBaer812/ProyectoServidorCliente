@@ -13,3 +13,11 @@ footer{
 #icoUser{
     font-size: 50px;
 }
+
+.alto{
+    height: 100%;
+}
+
+.ancho{
+    width: 100%;
+}

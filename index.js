@@ -17,6 +17,8 @@ app.use(express.static("public"));
 
 app.use("/icons", express.static("node_modules/bootstrap-icons/font"));
 
+app.use("/popover", express.static("node_modules/bootstrap/js/dist"));
+
 app.use("/estilo", express.static("public"))
 
 app.use(session({

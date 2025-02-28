@@ -1,41 +1,56 @@
 extends layouts/head
 block contenido
     main.container.d-flex.justify-content-center.p-2(style="min-height: 81.7vh")
-        .row.d-flex(style="width:100%")
-            .col.d-flex.gap-1.flex-column(style="min-height:100%; width: 100%")
-                .row.border(style="min-height:50%; width: 100%")
+        .row.d-flex.ancho
+            .col.d-flex.gap-1.flex-column.ancho
+                .row.border.ancho.p-3
                     .col-2
                     .col-8.d-flex.flex-column.justify-content-center.align-items-center
                         h3 Acciones
                         .row
                             .col-12.d-flex.gap-4
-                                a.btn.btn-success(href="")
+                                a.btn.btn-success(href="/crearFactura/" + idG + "/" + idP data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="left" data-bs-content="Añadir factura") <!-- Para añadir un ticket -->
                                     i.bi.bi-receipt-cutoff.fs-2
-                                a.btn.btn-warning(href="")
+                                a.btn.btn-warning(href="" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="right" data-bs-content="Salir del grupo") <!-- Para salir de un grupo -->
                                     i.bi.bi-box-arrow-right.fs-2
                         h3 Acciones de administrador
                         .row
                             .col-12.d-flex.gap-4
-                                a.btn.btn-success(href="")
+                                a.btn.btn-success(href="" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="left" data-bs-content="Añadir participante") <!-- Para añadir una persona al grupo -->
                                     i.bi.bi-person-add.fs-2
-                                a.btn.btn-danger(href="")
+                                a.btn.btn-danger(href="" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="right" data-bs-content="Cerrar grupo") <!-- Para cerrar el grupo -->
                                     i.bi.bi-x-circle-fill.fs-2
                     .col-2.d-flex.flex-column.justify-content-center
                         h4 Situación actual
                         | #{sActual}€
                 .row.border.d-flex.align-items-center.justify-content-center(style="min-height:50%; width: 100%")
-                    .col-8.d-flex.flex-column.align-items-center
+                    .col-md-9.col-12.d-flex.flex-column.align-items-center.justify-content-start.alto
                         h3 Compras
                         if datos.length > 0
                             for dato in datos
-                                .row.m-1.d-flex(style="width:100%")
+                                .row.m-1.d-flex.ancho
                                     .col-12.border
-                                        .row
-                                            .col-3
+                                        .row.p-1.overflow-y-auto
+                                            .col-3.text-center.p-1
                                                 |#{dato.nombre}
-                                            .col-3 
-                                                |#{dato.valor}
-                                            .col-3 
+                                            .col-1.p-1
+                                                |#{dato.valor} €
+                                            .col-5.p-1 
                                                 |#{dato.Comentario}
-                                            .col-3 
-                                                |#{dato.Tipo}
+                                            .col-2.p-1 
+                                                .text-capitalize #{dato.Tipo}
+                                            .col-1.p-1
+                                                a.btn.btn-danger(href="/borrar/" + dato.idCompra)
+                                                    i.bi.bi-trash3
+                    .col-md-3.col-12.d-flex.flex-column.align-items-center.justify-content-start.alto
+                        h3 Posición actual
+                        if datosP.length > 0
+                            for dato in datosP
+                                .row.m-1.d-flex.ancho
+                                    .col-12.border
+                                        .row.p-1.overflow-y-auto
+                                            .col-6.p-1
+                                                .text-capitalize #{dato.nombre}
+                                                
+                                            .col-6.p-1
+                                                | #{dato.posicion - gMedios}€
