@@ -32,42 +32,54 @@ const paginaISesion = async(req,res)=>{
 
 const iSesion = async(req,res)=>{
 
-    try{
-        await db.execute("CALL iSesion(?,?,@salida)",[
-            req.body.usuario,
-            req.body.password
-        ])
-
-        const [rows] = await db.execute("SELECT @salida AS salida");
-
-        const autentificado = rows[0].salida == 1? true:false;
+    if(req.session.usuario != undefined){
+        const envio = await grupos(req.session.usuario);
         
-        if(autentificado){
-            req.session.usuario = req.body.usuario;
-
-            const envio = await grupos(req.session.usuario);
-
-            res.render("principal",{
-                titulo: "Pagina de usuario",
-                identificado: identificacion(req),
-                grupos: envio
-            })
-        }
-        else{
-            
-            res.render("iSesion",{
-                titulo: "Inicio de sesión",
-                identificado: identificacion(req),
-                mensaje: true,
-                usuario: req.body.usuario,
-                password: req.body.password
-            })
-        }
-        
+        res.render("principal", {
+            titulo: "Pagina de usuario",
+            identificado: identificacion(req),
+            grupos: envio
+        })
     }
-    catch(err){
-        console.error(err)
+    else {
+        try {
+            await db.execute("CALL iSesion(?,?,@salida)", [
+                req.body.usuario,
+                req.body.password
+            ])
+
+            const [rows] = await db.execute("SELECT @salida AS salida");
+
+            const autentificado = rows[0].salida == 1 ? true : false;
+
+            if (autentificado) {
+                req.session.usuario = req.body.usuario;
+
+                const envio = await grupos(req.session.usuario);
+
+                res.render("principal", {
+                    titulo: "Pagina de usuario",
+                    identificado: identificacion(req),
+                    grupos: envio
+                })
+            }
+            else {
+
+                res.render("iSesion", {
+                    titulo: "Inicio de sesión",
+                    identificado: identificacion(req),
+                    mensaje: true,
+                    usuario: req.body.usuario,
+                    password: req.body.password
+                })
+            }
+
+        }
+        catch (err) {
+            console.error(err)
+        }
     }
+    
 }
 
 const cerrarSesion = async (req,res) => {
@@ -274,48 +286,25 @@ const accesoGrupo = async(req,res) =>{
         const idP = req.session.usuario;
         
         try{
-            
-            await db.execute("CALL sActual (?,?,@sPersona, @sGrupo, @tPersonas)",[
-                idG,
-                idP
-            ])
 
-            let resultados = await Promise.all([
-                db.query("SELECT @sPersona as sPersona, @sGrupo as sGrupo, @tPersonas as tPersonas"),
-                db.query("SELECT nombre FROM grupo where grupoid = ?",[
-                    idG
-                ]),
-                db.query("SELECT idCompra,compra.nombre,compra.valor,compra.Comentario, tipo.nombre as 'Tipo' FROM  grupo inner join compra inner join tipo on grupo.grupoid = compra.idGrupo and compra.idTipo = tipo.idtipo where grupoid = ?",[
-                    idG
-                ]),
-                db.query("SELECT SUM(Valor) as posicion ,usuarios.nombre from compra inner join usuarios on usuarios.usuario = compra.usuario where idGrupo = ? group by usuarios.usuario",[
-                    idG
-                ])
-            ])
+            const resultado = await datosG(idG,idP);
 
-            let gMedios = resultados[0][0][0].sGrupo/resultados[0][0][0].tPersonas
 
-            let sActual = resultados[0][0][0].sPersona - gMedios;
-            
-            req.session.grupo = idG;
-
-            console.log(resultados[2][0])
-
-            if(resultados[0][0][0].tPersonas != 1){
+            if(resultado[5] != 1){
                 res.render("grupoP",{
-                    titulo:"Pagina del grupo " + resultados[1][0][0].nombre,
+                    titulo:"Pagina del grupo " + resultado[2],
                     idP,
                     idG,
                     identificado: identificacion(req),
-                    sActual: sActual,
-                    gMedios : gMedios,
-                    datos: resultados[2][0],
-                    datosP: resultados[3][0]
+                    sActual: resultado[1],
+                    gMedios : resultado[0],
+                    datos: resultado[3],
+                    datosP: resultado[4],
                 })
             }
             else{
                 res.render("grupoP",{
-                    titulo:"Pagina del grupo " + resultados[1][0][0].nombre,
+                    titulo:"Pagina del grupo " + resultado[2],
                     identificado: identificacion(req),
                 })
             }
@@ -333,8 +322,175 @@ const accesoGrupo = async(req,res) =>{
     }
 }
 
-const crearFactura = async(req,res) =>{
+const paginaFactura = async(req,res)=>{
+    if(identificacion(req)){
+        try{
+            let resp = await db.query("SELECT * FROM tipo");
 
+            res.render("aFactura",{
+                titulo:"Crear factura",
+                identificado: identificacion(req),
+                tipos: resp[0],
+                idG:req.session.grupo
+            })
+        }
+        catch(err){
+            console.error(err)
+        }
+        
+    }
+    else{
+        res.render("indice",{
+            titulo:"Inicio",
+            identificado: identificacion(req)
+        })
+    }
+
+}
+
+const crearFactura = async(req,res) =>{
+    if(identificacion(req)){
+        let idU = req.session.usuario;
+        let idG = req.session.grupo;
+
+        let datos = req.body;
+
+        let resp = await db.query("SELECT * FROM tipo");
+
+        if(datos.tipo != "" && datos.fecha != "" && datos.valor != "" && datos.nombre != "" && datos.comentario !=""){
+
+
+            try{
+                
+                await db.execute("CALL compra (?,?,?,?,?,?,?)",[
+                    idU,
+                    idG,
+                    datos.tipo,
+                    datos.fecha,
+                    datos.valor,
+                    datos.nombre,
+                    datos.comentario
+                ])
+
+                res.render("aFactura",{
+                    titulo:"Crear factura",
+                    identificado: identificacion(req),
+                    tipos: resp[0],
+                    idG
+                })
+            }
+            catch(err){
+                console.error(err)
+
+                let texto = "Su factura no se ha podido dar de alta";
+    
+                res.render("aFactura",{
+                    titulo:"Crear factura",
+                    identificado: identificacion(req),
+                    mensaje: true,
+                    texto,
+                    tipos: resp[0],
+                    tip: datos.tipo,
+                    fech: datos.fecha,
+                    val: datos.valor,
+                    nom: datos.nombre,
+                    com: datos.comentario,
+                    idG
+                })
+            }
+        }
+        else{
+            let texto = "No todos los campos están completos";
+
+            res.render("aFactura",{
+                titulo:"Crear factura",
+                identificado: identificacion(req),
+                mensaje: true,
+                texto,
+                tipos: resp[0],
+                tip: datos.tipo,
+                fech: datos.fecha,
+                val: datos.valor,
+                nom: datos.nombre,
+                com: datos.comentario,
+                idG
+            })  
+        }
+        
+        
+    }
+    else{
+        res.render("indice",{
+            titulo:"Inicio",
+            identificado: identificacion(req)
+        })
+    }
+}
+
+const borrar = async (req,res) =>{
+    if(identificacion(req)){
+        const idG = req.session.grupo;
+        const idP = req.session.usuario;
+
+        try{
+            const salida = await db.execute("CALL borrado(?)",[
+                req.params.idCompra
+            ])
+
+            const resultado = await datosG(idG,idP)
+
+            if(resultado[5] != 1){
+                res.render("grupoP",{
+                    titulo:"Pagina del grupo " + resultado[2],
+                    idP,
+                    idG,
+                    identificado: identificacion(req),
+                    sActual: res[1],
+                    gMedios : resultado[0],
+                    datos: resultado[3],
+                    datosP: resultado[4],
+                    borrado: salida[0].affectedRows
+                })
+            }
+            else{
+                res.render("grupoP",{
+                    titulo:"Pagina del grupo " + resultado[2],
+                    identificado: identificacion(req),
+                    borrado: salida[0].affectedRows
+                })
+            }
+        }
+        catch(err){
+            console.error(err)
+
+            const resultado = await datosG(idG,idP)
+
+            if(resultado[5] != 1){
+                res.render("grupoP",{
+                    titulo:"Pagina del grupo " + resultado[2],
+                    idP,
+                    idG,
+                    identificado: identificacion(req),
+                    sActual: resultado[1],
+                    gMedios : resultado[0],
+                    datos: resultado[3],
+                    datosP: resultado[4],
+                })
+            }
+            else{
+                res.render("grupoP",{
+                    titulo:"Pagina del grupo " + resultado[2],
+                    identificado: identificacion(req),
+                })
+            }
+        }
+    }
+    else{
+        res.render("indice",{
+            titulo:"Inicio",
+            identificado: identificacion(req)
+        })
+    }
 }
 
 const recuperacion = async(req,res) => {
@@ -348,6 +504,40 @@ async function grupos(usuario){
 
     return grupos[0];
 }
+
+/**
+ * 
+ * @param {number} idG id del grupo 
+ * @param {string} idP id del usuario
+ * @returns Array [Gastos Medios, Situación Actual del usuario, Nombre del grupo, Datos de las operaciones realizadas, Datos de las personas en el grupo]
+ */
+async function datosG(idG,idP){
+    await db.execute("CALL sActual (?,?,@sPersona, @sGrupo, @tPersonas)",[
+        idG,
+        idP
+    ])
+
+    let resultados = await Promise.all([
+        db.query("SELECT @sPersona as sPersona, @sGrupo as sGrupo, @tPersonas as tPersonas"),
+        db.query("SELECT nombre FROM grupo where grupoid = ?",[
+            idG
+        ]),
+        db.query("SELECT idCompra,compra.nombre,compra.valor,compra.Comentario, tipo.nombre as 'Tipo' FROM  grupo inner join compra inner join tipo on grupo.grupoid = compra.idGrupo and compra.idTipo = tipo.idtipo where grupoid = ?",[
+            idG
+        ]),
+        db.query("SELECT SUM(Valor) as posicion ,usuarios.nombre from compra inner join usuarios on usuarios.usuario = compra.usuario where idGrupo = ? group by usuarios.usuario",[
+            idG
+        ])
+    ])
+
+    let gMedios = resultados[0][0][0].sGrupo/resultados[0][0][0].tPersonas;
+
+    let sActual = resultados[0][0][0].sPersona - gMedios;
+
+    return [gMedios,sActual,resultados[1][0][0].nombre,resultados[2][0],resultados[3][0],resultados[0][0][0].tPersonas]
+}
+
+
 
 function identificacion(request){
     let salida = false
@@ -369,14 +559,16 @@ export{
     paginaInicio,
     paginaRegistro,
     paginaISesion,
+    paginaFactura,
+    pagCrearGrupo,
     iSesion,
     registro,
     verifica,
     cerrarSesion,
-    pagCrearGrupo,
     volverPPrincial,
     crearGrupo,
     accesoGrupo,
     crearFactura,
-    recuperacion
+    recuperacion,
+    borrar
 }

@@ -1,0 +1,34 @@
+extends layouts/head
+block contenido
+    main.container.d-flex.justify-content-center.p-2(style="min-height: 81.7vh")
+        .row.d-flex.align-items-center.justify-content-center(style="min-height:100%; width: 100%")
+            .col-8.d-flex.flex-column.justify-content-center.align-items-center
+                
+                form.row.g-3.border.p-1.mt-4(action="/crearFactura" method="post")
+                    if mensaje
+                        div.bg-warning.mb-1.p-1
+                            ul 
+                                p.text-dark.fw-bold #{texto}
+                    .row.my-1.d-flex.gap-1
+                        .col-md-6.col-12
+                            select#tipo.form-select(aria-label='Selector de tipo' name="tipo")
+                                option(selected='') Selecciones su tipo
+                                for tipo in tipos 
+                                    option(value = tipo.idtipo selected=tipo.idtipo==tip ) #{tipo.nombre.charAt(0).toUpperCase()+tipo.nombre.slice(1)}
+                        .col-md.col-12
+                            label.visually-hidden(for='fecha') Fecha
+                            input#fecha.form-control(type='date' name="fecha" placeholder='fecha' value=fech)
+                    .row.my-1.d-flex.gap-1
+                        .col-md-6.col-12
+                            label.visually-hidden(for='valor') Precio
+                            input#precio.form-control(type='number' name="valor" placeholder="Precio" value=val step="0.01")
+                        .col-md.col-12
+                            label.visually-hidden(for='nombre') Nombre
+                            input#nombre.form-control(type='text' name="nombre" placeholder='Nombre del Producto' value=nom)
+                    .row.my-1.d-flex.gap-1.justify-content-center
+                        .col-md-12.col-12 
+                            label.visually-hidden(for='comentario') Comentario
+                            textarea#comentario.form-control(name="comentario" placeholder='Su comentario aquí' value=com)
+                    .col-12.d-flex.justify-content-center.align-items-center.mt-2
+                            button.btn.btn-primary(type='submit') Registrarse
+                

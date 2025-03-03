@@ -21,3 +21,7 @@ footer{
 .ancho{
     width: 100%;
 }
+
+#pActual{
+    margin: 2px;
+}

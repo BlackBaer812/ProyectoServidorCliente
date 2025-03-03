@@ -1,4 +1,12 @@
 if identificado
+    if(titulo != "Pagina de usuario")
+        form(action="/iSesion" method="post") 
+            button.btn.btn-warning(type="submit") Volver principal
+
+    if(titulo == "Crear factura")
+        a.btn.btn-warning(href="/accesoGrupo/" + idG) Volver
+
+    
     button.btn.btn-info 
         | b1
 

@@ -9,7 +9,7 @@ block contenido
                         h3 Acciones
                         .row
                             .col-12.d-flex.gap-4
-                                a.btn.btn-success(href="/crearFactura/" + idG + "/" + idP data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="left" data-bs-content="Añadir factura") <!-- Para añadir un ticket -->
+                                a.btn.btn-success(href="/paginaFactura" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="left" data-bs-content="Añadir factura") <!-- Para añadir un ticket -->
                                     i.bi.bi-receipt-cutoff.fs-2
                                 a.btn.btn-warning(href="" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="right" data-bs-content="Salir del grupo") <!-- Para salir de un grupo -->
                                     i.bi.bi-box-arrow-right.fs-2
@@ -24,33 +24,41 @@ block contenido
                         h4 Situación actual
                         | #{sActual}€
                 .row.border.d-flex.align-items-center.justify-content-center(style="min-height:50%; width: 100%")
-                    .col-md-9.col-12.d-flex.flex-column.align-items-center.justify-content-start.alto
-                        h3 Compras
-                        if datos.length > 0
-                            for dato in datos
-                                .row.m-1.d-flex.ancho
-                                    .col-12.border
-                                        .row.p-1.overflow-y-auto
-                                            .col-3.text-center.p-1
-                                                |#{dato.nombre}
-                                            .col-1.p-1
-                                                |#{dato.valor} €
-                                            .col-5.p-1 
-                                                |#{dato.Comentario}
-                                            .col-2.p-1 
-                                                .text-capitalize #{dato.Tipo}
-                                            .col-1.p-1
-                                                a.btn.btn-danger(href="/borrar/" + dato.idCompra)
-                                                    i.bi.bi-trash3
-                    .col-md-3.col-12.d-flex.flex-column.align-items-center.justify-content-start.alto
-                        h3 Posición actual
-                        if datosP.length > 0
-                            for dato in datosP
-                                .row.m-1.d-flex.ancho
-                                    .col-12.border
-                                        .row.p-1.overflow-y-auto
-                                            .col-6.p-1
-                                                .text-capitalize #{dato.nombre}
-                                                
-                                            .col-6.p-1
-                                                | #{dato.posicion - gMedios}€
+                    .col-12 
+                        .row 
+                            .col-12 
+                                if(borrado==0)
+                                    div.bg-warning.mb-1.p-1
+                                        ul 
+                                            p.text-dark.fw-bold No se ha podido dar de baja la operación presionada
+                        .row 
+                            .col-md-9.col-12.d-flex.flex-column.align-items-center.justify-content-start.alto
+                                h3 Compras
+                                if datos.length > 0
+                                    for dato in datos
+                                        .row.m-1.d-flex.ancho
+                                            .col-12.border
+                                                .row.p-1.overflow-y-auto
+                                                    .col-3.text-center.p-1
+                                                        |#{dato.nombre.charAt(0).toUpperCase() + dato.nombre.slice(1)}
+                                                    .col-1.p-1
+                                                        |#{dato.valor} €
+                                                    .col-5.p-1 
+                                                        |#{dato.Comentario}
+                                                    .col-2.p-1 
+                                                        .text-capitalize #{dato.Tipo}
+                                                    .col-1.p-1
+                                                        a.btn.btn-danger(href="/borrar/" + dato.idCompra data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="right" data-bs-content="Borrar articulo: "+dato.nombre) <!-- Borrar articulo de la lista -->
+                                                            i.bi.bi-trash3
+                            .col-md-3.col-12.d-flex.flex-column.align-items-center.justify-content-start.alto
+                                h3 Posición actual
+                                if datosP.length > 0
+                                    for dato in datosP
+                                        .row.m-1.d-flex.ancho
+                                            .col-12.border
+                                                .row.p-1.overflow-y-auto
+                                                    .col-6.p-1
+                                                        p.text-capitalize#pActual #{dato.nombre}
+                                                        
+                                                    .col-6.p-1
+                                                        p#pActual #{dato.posicion - gMedios}€
