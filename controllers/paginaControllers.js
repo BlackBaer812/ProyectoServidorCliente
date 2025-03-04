@@ -618,7 +618,7 @@ const anadirParticipante = async (req,res) =>{
                     res.render("anadirU",{
                         titulo:"Añadir usuario",
                         identificado: identificacion(req),
-                        datos: datos[1][0][0],
+                        datos: datos[1][0],
                         mensaje,
                         idG
                     })
@@ -629,7 +629,7 @@ const anadirParticipante = async (req,res) =>{
                     res.render("anadirU",{
                         titulo:"Añadir usuario",
                         identificado: identificacion(req),
-                        datos: datos[1][0][0],
+                        datos: datos[1][0],
                         mensaje,
                         idG
                     })
