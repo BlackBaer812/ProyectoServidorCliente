@@ -31,6 +31,6 @@ block contenido
                     .row.my-1.d-flex.gap-1.justify-content-center
                         .col-md-6.col-12 
                             label.visually-hidden(for='telefono') Telefono
-                            input#telefono.form-control(type='number' name="telefono" placeholder='Nº de Telefono' max=999999999 min=111111111 value=telf)           
+                            input#telefono.form-control(type='number' name="telefono" placeholder='Nº de Telefono' max=999999999 min=111111111 value=telf oninput="if(this.value.length > 9) this.value = this.value.slice(0,9);")           
                     .col-12.d-flex.justify-content-center.align-items-center.mt-2
                             button.btn.btn-primary(type='submit') Registrarse

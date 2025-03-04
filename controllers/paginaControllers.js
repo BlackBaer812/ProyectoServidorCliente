@@ -289,6 +289,7 @@ const accesoGrupo = async(req,res) =>{
 
             const resultado = await datosG(idG,idP);
 
+            req.session.grupo = idG;
 
             if(resultado[5] != 1){
                 res.render("grupoP",{
@@ -306,11 +307,22 @@ const accesoGrupo = async(req,res) =>{
                 res.render("grupoP",{
                     titulo:"Pagina del grupo " + resultado[2],
                     identificado: identificacion(req),
+                    sActual: resultado[1],
+                    gMedios : resultado[0],
+                    datos: resultado[3],
+                    datosP: resultado[4],
                 })
             }
         }
         catch(err){
-            console.log(err)
+            console.error(err)
+            const envio = await grupos(req.session.usuario);
+
+            res.render("principal",{
+                titulo: "Pagina de usuario",
+                identificado: identificacion(req),
+                grupos: envio
+            })
         }
         
     }
@@ -336,6 +348,13 @@ const paginaFactura = async(req,res)=>{
         }
         catch(err){
             console.error(err)
+            const envio = await grupos(req.session.usuario);
+
+            res.render("principal",{
+                titulo: "Pagina de usuario",
+                identificado: identificacion(req),
+                grupos: envio
+            })
         }
         
     }
@@ -345,7 +364,38 @@ const paginaFactura = async(req,res)=>{
             identificado: identificacion(req)
         })
     }
+}
 
+const paginaFacturaParams = async(req,res) => {
+    if(identificacion(req)){
+        req.session.grupo = req.params.idG;
+        try{
+            let resp = await db.query("SELECT * FROM tipo");
+
+            res.render("aFactura",{
+                titulo:"Crear factura",
+                identificado: identificacion(req),
+                tipos: resp[0],
+                idG:req.session.grupo
+            })
+        }
+        catch(err){
+            console.error(err)
+            const envio = await grupos(req.session.usuario);
+
+            res.render("principal",{
+                titulo: "Pagina de usuario",
+                identificado: identificacion(req),
+                grupos: envio
+            })
+        }
+    }
+    else{
+        res.render("indice",{
+            titulo:"Inicio",
+            identificado: identificacion(req)
+        })
+    }
 }
 
 const crearFactura = async(req,res) =>{
@@ -493,6 +543,133 @@ const borrar = async (req,res) =>{
     }
 }
 
+const paginaAnadir = async(req,res) =>{
+    if(identificacion(req)){
+        try{
+            const idG = req.session.grupo;
+            const resultado = await db.query("SELECT usuarios.nombre, usuarios.telefono, usuarios.email FROM pertenece inner join usuarios on pertenece.userid = usuario where grupoid = ?",
+                idG
+            )
+
+            res.render("anadirU",{
+                titulo:"Añadir usuario",
+                identificado: identificacion(req),
+                datos: resultado[0],
+                idG
+            })
+        }
+        catch(err){
+            console.error(err)
+
+            const envio = await grupos(req.session.usuario);
+
+            res.render("principal",{
+                titulo: "Pagina de usuario",
+                identificado: identificacion(req),
+                grupos: envio
+            })
+        }
+
+        
+    }
+    else{
+        res.render("indice",{
+            titulo:"Inicio",
+            identificado: identificacion(req)
+        })
+    }
+}
+
+const anadirParticipante = async (req,res) =>{
+    if(identificacion(req)){
+        let body = req.body
+        const idG = req.session.grupo;
+
+        if(body.telefono != "" || body.email != ""){
+
+            const idU = req.body.usuario;
+            const tlf = req.body.telefono == 0 ? null: req.body.telefono;
+            const email = req.body.email;
+            const admin = req.body.admin == "on" ? 1:0;
+
+            console.log(typeof(tlf))
+            try{
+                const resultado = await db.execute("CALL anadirUser(?,?,?,?,?,@sal)",[
+                    idU,
+                    tlf,
+                    email,
+                    idG,
+                    admin
+                ])
+
+                const datos = await Promise.all([
+                    db.query("SELECT @sal as salida"),
+                    db.query("SELECT usuarios.nombre, usuarios.telefono, usuarios.email FROM pertenece inner join usuarios on pertenece.userid = usuario where grupoid = ?",
+                        idG
+                    )
+                ])
+
+                console.log(datos[0][0][0].salida)
+                console.log(datos[1][0])
+
+                if(datos[0][0][0].salida == 0){
+                    let mensaje = "Usuario dado de alta correctamente";
+
+                    res.render("anadirU",{
+                        titulo:"Añadir usuario",
+                        identificado: identificacion(req),
+                        datos: datos[1][0][0],
+                        mensaje,
+                        idG
+                    })
+                }
+                else{
+                    let mensaje = "No se ha dado de alta al usuario";
+
+                    res.render("anadirU",{
+                        titulo:"Añadir usuario",
+                        identificado: identificacion(req),
+                        datos: datos[1][0][0],
+                        mensaje,
+                        idG
+                    })
+                }
+            }
+            catch(err){
+                console.error(err)
+            }
+
+        }
+        else{
+
+            try{
+                
+                const resultado = await usuariosGrupo(idG);
+
+                let mensaje = "Debe rellenar al menos dos campos";
+
+                res.render("anadirU",{
+                    titulo:"Añadir usuario",
+                    identificado: identificacion(req),
+                    datos: resultado[0],
+                    mensaje,
+                    idG
+                })
+            }
+            catch(err){
+                console.error(err)
+            }
+            
+        }
+    }
+    else{
+        res.render("indice",{
+            titulo:"Inicio",
+            identificado: identificacion(req)
+        })
+    }
+}
+
 const recuperacion = async(req,res) => {
 
 }
@@ -503,6 +680,12 @@ async function grupos(usuario){
     ])
 
     return grupos[0];
+}
+
+async function usuariosGrupo(idG) {
+    return await db.query("SELECT usuarios.nombre, usuarios.telefono, usuarios.email FROM pertenece inner join usuarios on pertenece.userid = usuario where grupoid = ?",
+        idG
+    )
 }
 
 /**
@@ -525,7 +708,8 @@ async function datosG(idG,idP){
         db.query("SELECT idCompra,compra.nombre,compra.valor,compra.Comentario, tipo.nombre as 'Tipo' FROM  grupo inner join compra inner join tipo on grupo.grupoid = compra.idGrupo and compra.idTipo = tipo.idtipo where grupoid = ?",[
             idG
         ]),
-        db.query("SELECT SUM(Valor) as posicion ,usuarios.nombre from compra inner join usuarios on usuarios.usuario = compra.usuario where idGrupo = ? group by usuarios.usuario",[
+        db.query("SELECT SUM(valor) as posicion, usuarios.nombre FROM usuarios LEFT JOIN compra ON usuarios.usuario = compra.usuario INNER JOIN pertenece ON usuarios.usuario = pertenece.userid WHERE pertenece.grupoid = ? and usuarios.usuario in(SELECT pertenece.userid from pertenece where pertenece.grupoid = ?) GROUP by usuarios.usuario ",[
+            idG,
             idG
         ])
     ])
@@ -560,7 +744,9 @@ export{
     paginaRegistro,
     paginaISesion,
     paginaFactura,
+    paginaFacturaParams,
     pagCrearGrupo,
+    paginaAnadir,
     iSesion,
     registro,
     verifica,
@@ -569,6 +755,7 @@ export{
     crearGrupo,
     accesoGrupo,
     crearFactura,
+    anadirParticipante,
     recuperacion,
     borrar
 }

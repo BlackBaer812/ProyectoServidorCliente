@@ -16,7 +16,7 @@ block contenido
                         h3 Acciones de administrador
                         .row
                             .col-12.d-flex.gap-4
-                                a.btn.btn-success(href="" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="left" data-bs-content="Añadir participante") <!-- Para añadir una persona al grupo -->
+                                a.btn.btn-success(href="/anadirUser" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="left" data-bs-content="Añadir participante") <!-- Para añadir una persona al grupo -->
                                     i.bi.bi-person-add.fs-2
                                 a.btn.btn-danger(href="" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="right" data-bs-content="Cerrar grupo") <!-- Para cerrar el grupo -->
                                     i.bi.bi-x-circle-fill.fs-2
@@ -61,4 +61,4 @@ block contenido
                                                         p.text-capitalize#pActual #{dato.nombre}
                                                         
                                                     .col-6.p-1
-                                                        p#pActual #{dato.posicion - gMedios}€
+                                                        p#pActual #{(dato.posicion - gMedios).toFixed(2)}€

@@ -1,11 +1,12 @@
 if identificado
     if(titulo != "Pagina de usuario")
         form(action="/iSesion" method="post") 
-            button.btn.btn-warning(type="submit") Volver principal
+            button.btn.btn-warning(type="submit")
+                i.bi.bi-house.fs-2
 
-    if(titulo == "Crear factura")
-        a.btn.btn-warning(href="/accesoGrupo/" + idG) Volver
-
+    if(titulo == "Crear factura" || titulo == "Añadir usuario")
+        a.btn.btn-warning(href="/accesoGrupo/" + idG)
+            i.bi.bi-arrow-left-circle.fs-2
     
     button.btn.btn-info 
         | b1
