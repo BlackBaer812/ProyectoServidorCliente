@@ -241,7 +241,6 @@ const volverPPrincial = async(req,res) =>{
 
 const crearGrupo = async(req,res) =>{
     if(identificacion(req)){
-        console.log(req.body.nGrup, req.session.usuario)
 
         let nombreG = req.body.nGrup;
         const user = req.session.usuario;
@@ -592,7 +591,6 @@ const anadirParticipante = async (req,res) =>{
             const email = req.body.email;
             const admin = req.body.admin == "on" ? 1:0;
 
-            console.log(typeof(tlf))
             try{
                 const resultado = await db.execute("CALL anadirUser(?,?,?,?,?,@sal)",[
                     idU,
@@ -609,9 +607,6 @@ const anadirParticipante = async (req,res) =>{
                     )
                 ])
 
-                console.log(datos[0][0][0].salida)
-                console.log(datos[1][0])
-
                 if(datos[0][0][0].salida == 0){
                     let mensaje = "Usuario dado de alta correctamente";
 
@@ -619,6 +614,7 @@ const anadirParticipante = async (req,res) =>{
                         titulo:"Añadir usuario",
                         identificado: identificacion(req),
                         datos: datos[1][0],
+                        tipo: 0,
                         mensaje,
                         idG
                     })
@@ -631,6 +627,7 @@ const anadirParticipante = async (req,res) =>{
                         identificado: identificacion(req),
                         datos: datos[1][0],
                         mensaje,
+                        tipo: 1,
                         idG
                     })
                 }

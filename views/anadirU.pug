@@ -25,10 +25,14 @@ block contenido
                                         input#admin.form-check-input(type='checkbox' name="admin" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="bottom" data-bs-content="Administrador?")
                                     .col-6
                                         button.btn.btn-success(type="submit") Añadir
-
-                    .row.d-flex.align-items-center.justify-content-center.mt-4
-                        .col-6.bg-danger.p-3
-                            .text-center.text-light #{mensaje}         
+                    if(mensaje)
+                        .row.d-flex.align-items-center.justify-content-center.mt-4
+                            if(tipo == 1)
+                                .col-6.bg-danger.p-3
+                                    .text-center.text-light #{mensaje}
+                            else 
+                                .col-6.bg-danger.p-3
+                                    .text-center #{mensaje}         
 
                     .row.mt-4
                         .col-12
