@@ -35,10 +35,28 @@ const iSesion = async(req,res)=>{
     if(req.session.usuario != undefined){
         const envio = await grupos(req.session.usuario);
         
+        let idU = req.session.usuario;
+
+        const alerta = await db.query("SELECT grupo.nombre, grupo.grupoid FROM grupo inner join pertenece on grupo.grupoid = pertenece.grupoid where pertenece.aceptado = 0 and pertenece.userid = ?",[
+            idU
+        ]);
+
+        let sit = alerta[0].length>0?"red":"black";
+
+        res.locals.alerta = sit;
+        req.session.alerta = sit;
+
         res.render("principal", {
             titulo: "Pagina de usuario",
             identificado: identificacion(req),
-            grupos: envio
+            grupos: envio,
+            idU
+        })
+    }
+    else if(req.body.usuario == undefined){
+        res.render("iSesion",{
+            titulo: "Inicio de sesión",
+            identificado: identificacion(req),
         })
     }
     else {
@@ -53,11 +71,24 @@ const iSesion = async(req,res)=>{
             const autentificado = rows[0].salida == 1 ? true : false;
 
             if (autentificado) {
+
                 req.session.usuario = req.body.usuario;
 
                 let idU = req.session.usuario;
 
-                const envio = await grupos(req.session.usuario);
+                const resultado = await Promise.all([
+                    db.query("SELECT grupo.nombre, grupo.grupoid FROM grupo inner join pertenece on grupo.grupoid = pertenece.grupoid where pertenece.aceptado = 0 and pertenece.userid = ?",[
+                        idU
+                    ]),
+                    grupos(req.session.usuario)
+                ])
+
+                let alerta = resultado[0][0].length>0?"red":"black";
+
+                req.session.alerta = alerta;
+                res.locals.alerta = alerta;
+
+                const envio = resultado[1];
 
                 res.render("principal", {
                     titulo: "Pagina de usuario",
@@ -226,14 +257,24 @@ const pagCrearGrupo = async(req,res) =>{
 
 const volverPPrincial = async(req,res) =>{
     if(identificacion(req)){
-        
         const envio = await grupos(req.session.usuario);
+
+        let idU = req.session.usuario;
+        
+        const alerta = await db.query("SELECT grupo.nombre, grupo.grupoid FROM grupo inner join pertenece on grupo.grupoid = pertenece.grupoid where pertenece.aceptado = 0 and pertenece.userid = ?",[
+            idU
+        ]);
+
+        let sit = alerta[0].length>0?"red":"black";
+
+        res.locals.alerta = sit;
+        req.session.alerta = sit;
 
         res.render("principal",{
             titulo: "Pagina de usuario",
             identificado: identificacion(req),
             grupos: envio,
-            idU: req.session.usuario
+            idU
         })
     }
     else{
@@ -262,19 +303,13 @@ const crearGrupo = async(req,res) =>{
                 titulo: "Pagina de usuario",
                 identificado: identificacion(req),
                 grupos: envio,
-                idU: req.session.usuario
+                idU: user
             })
         }
         catch(err){
             console.error(err)
-            const envio = await grupos(req.session.usuario);
-
-            res.render("principal",{
-                titulo: "Pagina de usuario",
-                identificado: identificacion(req),
-                grupos: envio,
-                idU: req.session.usuario
-            })
+            
+            await redirectPagPrincipal(req,res)
         }
     }
     else{
@@ -307,6 +342,7 @@ const accesoGrupo = async(req,res) =>{
                     gMedios : resultado[0],
                     datos: resultado[3],
                     datosP: resultado[4],
+                    idU:idP
                 })
             }
             else{
@@ -317,19 +353,14 @@ const accesoGrupo = async(req,res) =>{
                     gMedios : resultado[0],
                     datos: resultado[3],
                     datosP: resultado[4],
+                    idU:idP
                 })
             }
         }
         catch(err){
             console.error(err)
-            const envio = await grupos(req.session.usuario);
-
-            res.render("principal",{
-                titulo: "Pagina de usuario",
-                identificado: identificacion(req),
-                grupos: envio,
-                idU: req.session.usuario
-            })
+            
+            await redirectPagPrincipal(req,res)
         }
         
     }
@@ -343,6 +374,8 @@ const accesoGrupo = async(req,res) =>{
 
 const paginaFactura = async(req,res)=>{
     if(identificacion(req)){
+        let idU = req.session.usuario;
+
         try{
             let resp = await db.query("SELECT * FROM tipo");
 
@@ -351,19 +384,13 @@ const paginaFactura = async(req,res)=>{
                 identificado: identificacion(req),
                 tipos: resp[0],
                 idG:req.session.grupo,
-                idU: req.session.usuario
+                idU
             })
         }
         catch(err){
             console.error(err)
-            const envio = await grupos(req.session.usuario);
-
-            res.render("principal",{
-                titulo: "Pagina de usuario",
-                identificado: identificacion(req),
-                grupos: envio,
-                idU: req.session.usuario
-            })
+            
+            await redirectPagPrincipal(req,res)
         }
         
     }
@@ -377,6 +404,8 @@ const paginaFactura = async(req,res)=>{
 
 const paginaFacturaParams = async(req,res) => {
     if(identificacion(req)){
+        let idU = req.session.usuario;
+
         req.session.grupo = req.params.idG;
         try{
             let resp = await db.query("SELECT * FROM tipo");
@@ -386,26 +415,20 @@ const paginaFacturaParams = async(req,res) => {
                 identificado: identificacion(req),
                 tipos: resp[0],
                 idG:req.session.grupo,
-                idU: req.session.usuario
+                idU
             })
         }
         catch(err){
             console.error(err)
-            const envio = await grupos(req.session.usuario);
-
-            res.render("principal",{
-                titulo: "Pagina de usuario",
-                identificado: identificacion(req),
-                grupos: envio,
-                idU: req.session.usuario
-            })
+            
+            await redirectPagPrincipal(req,res)
         }
     }
     else{
         res.render("indice",{
             titulo:"Inicio",
             identificado: identificacion(req),
-            idU: req.session.usuario
+            idU
         })
     }
 }
@@ -439,7 +462,7 @@ const crearFactura = async(req,res) =>{
                     identificado: identificacion(req),
                     tipos: resp[0],
                     idG,
-                    idU: req.session.usuario
+                    idU
                 })
             }
             catch(err){
@@ -459,7 +482,7 @@ const crearFactura = async(req,res) =>{
                     nom: datos.nombre,
                     com: datos.comentario,
                     idG,
-                    idU: req.session.usuario
+                    idU
                 })
             }
         }
@@ -478,7 +501,7 @@ const crearFactura = async(req,res) =>{
                 nom: datos.nombre,
                 com: datos.comentario,
                 idG,
-                idU: req.session.usuario
+                idU
             })  
         }
         
@@ -515,7 +538,7 @@ const borrar = async (req,res) =>{
                     datos: resultado[3],
                     datosP: resultado[4],
                     borrado: salida[0].affectedRows,
-                    idU: req.session.usuario
+                    idU:idP
                 })
             }
             else{
@@ -541,14 +564,14 @@ const borrar = async (req,res) =>{
                     gMedios : resultado[0],
                     datos: resultado[3],
                     datosP: resultado[4],
-                    idU: req.session.usuario
+                    idU:idP
                 })
             }
             else{
                 res.render("grupoP",{
                     titulo:"Pagina del grupo " + resultado[2],
                     identificado: identificacion(req),
-                    idU: req.session.usuario
+                    idU:idP
                 })
             }
         }
@@ -580,14 +603,7 @@ const paginaAnadir = async(req,res) =>{
         catch(err){
             console.error(err)
 
-            const envio = await grupos(req.session.usuario);
-
-            res.render("principal",{
-                titulo: "Pagina de usuario",
-                identificado: identificacion(req),
-                grupos: envio,
-                idU: req.session.usuario
-            })
+            await redirectPagPrincipal(req,res)
         }
 
         
@@ -657,6 +673,8 @@ const anadirParticipante = async (req,res) =>{
             }
             catch(err){
                 console.error(err)
+
+                await redirectPagPrincipal(req,res)
             }
 
         }
@@ -679,6 +697,8 @@ const anadirParticipante = async (req,res) =>{
             }
             catch(err){
                 console.error(err)
+
+                await redirectPagPrincipal(req,res)
             }
             
         }
@@ -709,6 +729,8 @@ const paginaUsuario = async(req,res) =>{
         }
         catch(err){
             console.error(err)
+
+            await redirectPagPrincipal(req,res)
         }
     }
     else{
@@ -727,27 +749,32 @@ const aceptarInvitacion = async(req,res) =>{
         let idU = req.session.usuario;
 
         try{
-            const datos = Promise.all([
+            const datos = await Promise.all([
                 db.execute("CALL procAcepRech(?,?,1)",[
                     idG,
                     idU
                 ]),
-                await db.query("SELECT grupo.nombre, grupo.grupoid FROM grupo inner join pertenece on grupo.grupoid = pertenece.grupoid where pertenece.aceptado = 0 and pertenece.userid = ?",[
+                db.query("SELECT grupo.nombre, grupo.grupoid FROM grupo inner join pertenece on grupo.grupoid = pertenece.grupoid where pertenece.aceptado = 0 and pertenece.userid = ?",[
                     req.params.idUsuario
                 ])
             ])
 
-            console.log(datos)
+            if(datos[1][0].length == 0){
+                res.locals.alerta = "black"
+                req.session.alerta = "black";
+            }
 
             res.render("pagUsuario",{
                 titulo:"Opciones de usuario",
                 identificado: identificacion(req),
                 idU: req.session.usuario,
-                datos: datos[1]
+                datos: datos[1][0]
             })
         }
         catch(err){
             console.error(err)
+
+            await redirectPagPrincipal(req,res)
         }
 
 
@@ -765,17 +792,36 @@ const rechazarInvitacion = async(req,res) =>{
 
     if(identificacion(req)){
 
-        idG = req.params.idGrupo;
-        idU = req.session.usuario;
+        let idG = req.params.idGrupo;
+        let idU = req.session.usuario;
 
         try{
-            db.execute("CALL aceptarInvitacion(?,?,0)",[
-                idG,
-                idU
+            const datos = await Promise.all([
+                db.execute("CALL procAcepRech(?,?,0)",[
+                    idG,
+                    idU
+                ]),
+                db.query("SELECT grupo.nombre, grupo.grupoid FROM grupo inner join pertenece on grupo.grupoid = pertenece.grupoid where pertenece.aceptado = 0 and pertenece.userid = ?",[
+                    req.params.idUsuario
+                ])
             ])
+
+            if(datos[1][0].length == 0){
+                res.locals.alerta = "black"
+                req.session.alerta = "black";
+            }
+
+            res.render("pagUsuario",{
+                titulo:"Opciones de usuario",
+                identificado: identificacion(req),
+                idU: req.session.usuario,
+                datos: datos[1][0]
+            })
         }
         catch(err){
             console.error(err)
+
+            await redirectPagPrincipal(req,res)
         }
 
 
@@ -805,6 +851,20 @@ async function usuariosGrupo(idG) {
     return await db.query("SELECT usuarios.nombre, usuarios.telefono, usuarios.email FROM pertenece inner join usuarios on pertenece.userid = usuario where grupoid = ?",
         idG
     )
+}
+
+
+async function redirectPagPrincipal(req,res){
+    const envio = await grupos(req.session.usuario);
+
+    let idU = req.session.usuario;
+
+    res.render("principal",{
+        titulo: "Pagina de usuario",
+        identificado: identificacion(req),
+        grupos: envio,
+        idU
+    })
 }
 
 /**

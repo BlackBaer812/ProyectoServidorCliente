@@ -34,6 +34,7 @@ app.use(session({
 app.use((req, res, next) => {
     res.locals.nombre = "Shared Control";
     res.locals.year = new Date().getFullYear();
+    res.locals.alerta = req.session.alerta || "black";
     next();
 })
 

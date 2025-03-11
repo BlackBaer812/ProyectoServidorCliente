@@ -16,7 +16,7 @@ header.container-fluid.sticky-top
         .col-md-3.d-flex.align-items-end.justify-content-center.flex-column.mt-2.gap-2
             if(identificado)
                 button.btn(type='button' data-bs-toggle='collapse' data-bs-target='#collapseWidthExample' aria-expanded='false' aria-controls='collapseWidthExample')
-                    i.bi.bi-person-circle#icoUser
+                    i.bi.bi-person-circle#icoUser(style = " color: " + alerta)
 
                 #collapseWidthExample.collapse
                     a.btn.btn-primary(href="/paginaUsuario/" + idU) Mi perfil
