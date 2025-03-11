@@ -55,12 +55,15 @@ const iSesion = async(req,res)=>{
             if (autentificado) {
                 req.session.usuario = req.body.usuario;
 
+                let idU = req.session.usuario;
+
                 const envio = await grupos(req.session.usuario);
 
                 res.render("principal", {
                     titulo: "Pagina de usuario",
                     identificado: identificacion(req),
-                    grupos: envio
+                    grupos: envio,
+                    idU
                 })
             }
             else {
@@ -207,7 +210,8 @@ const pagCrearGrupo = async(req,res) =>{
     if(identificacion(req)){
         res.render("crearGrupo",{
             titulo:"Crear grupo",
-            identificado: identificacion(req)
+            identificado: identificacion(req),
+            idU: req.session.usuario
         })
     }
     else{//Si no se esta registrado o con la sesión iniciada, se vuelve a inicio
@@ -228,7 +232,8 @@ const volverPPrincial = async(req,res) =>{
         res.render("principal",{
             titulo: "Pagina de usuario",
             identificado: identificacion(req),
-            grupos: envio
+            grupos: envio,
+            idU: req.session.usuario
         })
     }
     else{
@@ -256,7 +261,8 @@ const crearGrupo = async(req,res) =>{
             res.render("principal",{
                 titulo: "Pagina de usuario",
                 identificado: identificacion(req),
-                grupos: envio
+                grupos: envio,
+                idU: req.session.usuario
             })
         }
         catch(err){
@@ -266,7 +272,8 @@ const crearGrupo = async(req,res) =>{
             res.render("principal",{
                 titulo: "Pagina de usuario",
                 identificado: identificacion(req),
-                grupos: envio
+                grupos: envio,
+                idU: req.session.usuario
             })
         }
     }
@@ -320,7 +327,8 @@ const accesoGrupo = async(req,res) =>{
             res.render("principal",{
                 titulo: "Pagina de usuario",
                 identificado: identificacion(req),
-                grupos: envio
+                grupos: envio,
+                idU: req.session.usuario
             })
         }
         
@@ -342,7 +350,8 @@ const paginaFactura = async(req,res)=>{
                 titulo:"Crear factura",
                 identificado: identificacion(req),
                 tipos: resp[0],
-                idG:req.session.grupo
+                idG:req.session.grupo,
+                idU: req.session.usuario
             })
         }
         catch(err){
@@ -352,7 +361,8 @@ const paginaFactura = async(req,res)=>{
             res.render("principal",{
                 titulo: "Pagina de usuario",
                 identificado: identificacion(req),
-                grupos: envio
+                grupos: envio,
+                idU: req.session.usuario
             })
         }
         
@@ -375,7 +385,8 @@ const paginaFacturaParams = async(req,res) => {
                 titulo:"Crear factura",
                 identificado: identificacion(req),
                 tipos: resp[0],
-                idG:req.session.grupo
+                idG:req.session.grupo,
+                idU: req.session.usuario
             })
         }
         catch(err){
@@ -385,14 +396,16 @@ const paginaFacturaParams = async(req,res) => {
             res.render("principal",{
                 titulo: "Pagina de usuario",
                 identificado: identificacion(req),
-                grupos: envio
+                grupos: envio,
+                idU: req.session.usuario
             })
         }
     }
     else{
         res.render("indice",{
             titulo:"Inicio",
-            identificado: identificacion(req)
+            identificado: identificacion(req),
+            idU: req.session.usuario
         })
     }
 }
@@ -425,7 +438,8 @@ const crearFactura = async(req,res) =>{
                     titulo:"Crear factura",
                     identificado: identificacion(req),
                     tipos: resp[0],
-                    idG
+                    idG,
+                    idU: req.session.usuario
                 })
             }
             catch(err){
@@ -444,7 +458,8 @@ const crearFactura = async(req,res) =>{
                     val: datos.valor,
                     nom: datos.nombre,
                     com: datos.comentario,
-                    idG
+                    idG,
+                    idU: req.session.usuario
                 })
             }
         }
@@ -462,7 +477,8 @@ const crearFactura = async(req,res) =>{
                 val: datos.valor,
                 nom: datos.nombre,
                 com: datos.comentario,
-                idG
+                idG,
+                idU: req.session.usuario
             })  
         }
         
@@ -498,7 +514,8 @@ const borrar = async (req,res) =>{
                     gMedios : resultado[0],
                     datos: resultado[3],
                     datosP: resultado[4],
-                    borrado: salida[0].affectedRows
+                    borrado: salida[0].affectedRows,
+                    idU: req.session.usuario
                 })
             }
             else{
@@ -524,12 +541,14 @@ const borrar = async (req,res) =>{
                     gMedios : resultado[0],
                     datos: resultado[3],
                     datosP: resultado[4],
+                    idU: req.session.usuario
                 })
             }
             else{
                 res.render("grupoP",{
                     titulo:"Pagina del grupo " + resultado[2],
                     identificado: identificacion(req),
+                    idU: req.session.usuario
                 })
             }
         }
@@ -554,7 +573,8 @@ const paginaAnadir = async(req,res) =>{
                 titulo:"Añadir usuario",
                 identificado: identificacion(req),
                 datos: resultado[0],
-                idG
+                idG,
+                idU: req.session.usuario
             })
         }
         catch(err){
@@ -565,7 +585,8 @@ const paginaAnadir = async(req,res) =>{
             res.render("principal",{
                 titulo: "Pagina de usuario",
                 identificado: identificacion(req),
-                grupos: envio
+                grupos: envio,
+                idU: req.session.usuario
             })
         }
 
@@ -592,7 +613,7 @@ const anadirParticipante = async (req,res) =>{
             const admin = req.body.admin == "on" ? 1:0;
 
             try{
-                const resultado = await db.execute("CALL anadirUser(?,?,?,?,?,@sal)",[
+                await db.execute("CALL anadirUser(?,?,?,?,?,@sal)",[
                     idU,
                     tlf,
                     email,
@@ -616,7 +637,8 @@ const anadirParticipante = async (req,res) =>{
                         datos: datos[1][0],
                         tipo: 0,
                         mensaje,
-                        idG
+                        idG,
+                        idU: req.session.usuario
                     })
                 }
                 else{
@@ -628,7 +650,8 @@ const anadirParticipante = async (req,res) =>{
                         datos: datos[1][0],
                         mensaje,
                         tipo: 1,
-                        idG
+                        idG,
+                        idU: req.session.usuario
                     })
                 }
             }
@@ -650,7 +673,8 @@ const anadirParticipante = async (req,res) =>{
                     identificado: identificacion(req),
                     datos: resultado[0],
                     mensaje,
-                    idG
+                    idG,
+                    idU: req.session.usuario
                 })
             }
             catch(err){
@@ -667,12 +691,110 @@ const anadirParticipante = async (req,res) =>{
     }
 }
 
+const paginaUsuario = async(req,res) =>{
+    if(identificacion(req)){
+        try{
+
+            const resultado = await db.query("SELECT grupo.nombre, grupo.grupoid FROM grupo inner join pertenece on grupo.grupoid = pertenece.grupoid where pertenece.aceptado = 0 and pertenece.userid = ?",[
+                req.params.idUsuario
+            ])
+
+            res.render("pagUsuario",{
+                titulo:"Opciones de usuario",
+                identificado: identificacion(req),
+                idU: req.session.usuario,
+                datos: resultado[0]
+            })
+
+        }
+        catch(err){
+            console.error(err)
+        }
+    }
+    else{
+        res.render("indice",{
+            titulo:"Inicio",
+            identificado: identificacion(req)
+        })
+    }
+}
+
+const aceptarInvitacion = async(req,res) =>{
+
+    if(identificacion(req)){
+
+        let idG = req.params.idGrupo;
+        let idU = req.session.usuario;
+
+        try{
+            const datos = Promise.all([
+                db.execute("CALL procAcepRech(?,?,1)",[
+                    idG,
+                    idU
+                ]),
+                await db.query("SELECT grupo.nombre, grupo.grupoid FROM grupo inner join pertenece on grupo.grupoid = pertenece.grupoid where pertenece.aceptado = 0 and pertenece.userid = ?",[
+                    req.params.idUsuario
+                ])
+            ])
+
+            console.log(datos)
+
+            res.render("pagUsuario",{
+                titulo:"Opciones de usuario",
+                identificado: identificacion(req),
+                idU: req.session.usuario,
+                datos: datos[1]
+            })
+        }
+        catch(err){
+            console.error(err)
+        }
+
+
+    }
+    else{
+        res.render("indice",{
+            titulo:"Inicio",
+            identificado: identificacion(req)
+        })
+    }
+
+}
+
+const rechazarInvitacion = async(req,res) =>{
+
+    if(identificacion(req)){
+
+        idG = req.params.idGrupo;
+        idU = req.session.usuario;
+
+        try{
+            db.execute("CALL aceptarInvitacion(?,?,0)",[
+                idG,
+                idU
+            ])
+        }
+        catch(err){
+            console.error(err)
+        }
+
+
+    }
+    else{
+        res.render("indice",{
+            titulo:"Inicio",
+            identificado: identificacion(req)
+        })
+    }
+
+}
+
 const recuperacion = async(req,res) => {
 
 }
 
 async function grupos(usuario){
-    const grupos = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ?",[
+    const grupos = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ? and pertenece.aceptado = 1 and pertenece.activo = 1",[
         usuario
     ])
 
@@ -705,7 +827,7 @@ async function datosG(idG,idP){
         db.query("SELECT idCompra,compra.nombre,compra.valor,compra.Comentario, tipo.nombre as 'Tipo' FROM  grupo inner join compra inner join tipo on grupo.grupoid = compra.idGrupo and compra.idTipo = tipo.idtipo where grupoid = ?",[
             idG
         ]),
-        db.query("SELECT SUM(valor) as posicion, usuarios.nombre FROM usuarios LEFT JOIN compra ON usuarios.usuario = compra.usuario INNER JOIN pertenece ON usuarios.usuario = pertenece.userid WHERE pertenece.grupoid = ? and usuarios.usuario in(SELECT pertenece.userid from pertenece where pertenece.grupoid = ?) GROUP by usuarios.usuario ",[
+        db.query("SELECT SUM(valor) as posicion, usuarios.nombre FROM usuarios LEFT JOIN compra ON usuarios.usuario = compra.usuario INNER JOIN pertenece ON usuarios.usuario = pertenece.userid WHERE pertenece.grupoid = ? and usuarios.usuario in(SELECT pertenece.userid from pertenece where pertenece.grupoid = ? and activo = 1) GROUP by usuarios.usuario ",[
             idG,
             idG
         ])
@@ -744,6 +866,7 @@ export{
     paginaFacturaParams,
     pagCrearGrupo,
     paginaAnadir,
+    paginaUsuario,
     iSesion,
     registro,
     verifica,
@@ -754,5 +877,7 @@ export{
     crearFactura,
     anadirParticipante,
     recuperacion,
-    borrar
+    borrar,
+    aceptarInvitacion,
+    rechazarInvitacion
 }
