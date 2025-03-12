@@ -8,6 +8,15 @@ if identificado
         a.btn.btn-warning(href="/accesoGrupo/" + idG)
             i.bi.bi-arrow-left-circle.fs-2
     
+    if(idG != undefined && !titulo.includes("Pagina del grupo"))
+        a.btn.btn-success(href="/paginaFactura" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="left" data-bs-content="Añadir factura") 
+            i.bi.bi-receipt-cutoff.fs-2
+        if(admin = true)
+            a.btn.btn-success(href="/anadirUser" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="left" data-bs-content="Añadir participante") <!-- Para añadir una persona al grupo -->
+                i.bi.bi-person-add.fs-2
+            a.btn.btn-danger(href="" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="right" data-bs-content="Cerrar grupo") <!-- Para cerrar el grupo -->
+                i.bi.bi-x-circle-fill.fs-2
+
     button.btn.btn-info 
         | b1
 

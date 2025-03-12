@@ -342,7 +342,8 @@ const accesoGrupo = async(req,res) =>{
                     gMedios : resultado[0],
                     datos: resultado[3],
                     datosP: resultado[4],
-                    idU:idP
+                    idU:idP,
+                    admin: resultado[6]
                 })
             }
             else{
@@ -533,12 +534,13 @@ const borrar = async (req,res) =>{
                     idP,
                     idG,
                     identificado: identificacion(req),
-                    sActual: res[1],
+                    sActual: resultado[1],
                     gMedios : resultado[0],
                     datos: resultado[3],
                     datosP: resultado[4],
                     borrado: salida[0].affectedRows,
-                    idU:idP
+                    idU:idP,
+                    admin: resultado[6]
                 })
             }
             else{
@@ -564,7 +566,8 @@ const borrar = async (req,res) =>{
                     gMedios : resultado[0],
                     datos: resultado[3],
                     datosP: resultado[4],
-                    idU:idP
+                    idU:idP,
+                    admin: resultado[6]
                 })
             }
             else{
@@ -887,21 +890,19 @@ async function datosG(idG,idP){
         db.query("SELECT idCompra,compra.nombre,compra.valor,compra.Comentario, tipo.nombre as 'Tipo' FROM  grupo inner join compra inner join tipo on grupo.grupoid = compra.idGrupo and compra.idTipo = tipo.idtipo where grupoid = ?",[
             idG
         ]),
-        db.query(SELECT 
-            `SUM(compra.valor) AS posicion, 
-            usuarios.nombre 
-        FROM usuarios
-        LEFT JOIN compra ON usuarios.usuario = compra.usuario
-        INNER JOIN pertenece ON usuarios.usuario = pertenece.userid
-        WHERE pertenece.grupoid = ?  
-        AND usuarios.usuario IN (
-            SELECT userid 
-            FROM pertenece 
-            WHERE grupoid = ? AND activo = 1
-        ) 
-        GROUP BY usuarios.usuario, usuarios.nombre
-        ORDER BY usuarios.usuario DESC;`,[
-            idG,
+        db.query(`Select sum(compra.valor) as 'posicion', usuarios.usuario, usuarios.nombre
+            from compra
+            INNER join usuarios
+            on usuarios.usuario = compra.usuario
+            where compra.idGrupo = ?
+            GROUP by compra.usuario`,[
+            idG
+        ]),
+        db.query(`SELECT pertenece.userid, usuarios.nombre, pertenece.admin
+            from pertenece
+            INNER JOIN usuarios
+            on usuarios.usuario = pertenece.userid
+            where pertenece.grupoid = ?`,[
             idG
         ])
     ])
@@ -910,7 +911,28 @@ async function datosG(idG,idP){
 
     let sActual = resultados[0][0][0].sPersona - gMedios;
 
-    return [gMedios,sActual,resultados[1][0][0].nombre,resultados[2][0],resultados[3][0],resultados[0][0][0].tPersonas]
+    let admin = resultados[4][0].find(element => element.userid == idP).admin == 1?true:false;
+    
+    let posicion = []
+    
+    resultados[4][0].forEach(persona =>{
+        if(resultados[3][0].find(element => element.usuario == persona.userid)){
+            posicion.push({
+                posicion: resultados[3][0].find(element => element.usuario == persona.userid).posicion- gMedios,
+                nombre: persona.nombre,
+                usuario: persona.usuario
+            })
+        }
+        else{
+            posicion.push({
+                posicion: 0 - gMedios,
+                nombre: persona.nombre,
+                usuario: persona.usuario
+            })
+        }
+    })
+
+    return [gMedios,sActual,resultados[1][0][0].nombre,resultados[2][0],posicion,resultados[0][0][0].tPersonas,admin]
 }
 
 
