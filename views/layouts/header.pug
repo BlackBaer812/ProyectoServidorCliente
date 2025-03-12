@@ -16,11 +16,17 @@ header.container-fluid.sticky-top
         .col-md-3.d-flex.align-items-end.justify-content-center.flex-column.mt-2.gap-2
             if(identificado)
                 button.btn(type='button' data-bs-toggle='collapse' data-bs-target='#collapseWidthExample' aria-expanded='false' aria-controls='collapseWidthExample')
-                    i.bi.bi-person-circle#icoUser(style = " color: " + alerta)
+                    i.bi.bi-house-door#icoUser(style = " color: " + alerta)
 
                 #collapseWidthExample.collapse
-                    a.btn.btn-primary(href="/paginaUsuario/" + idU) Mi perfil
-                    a.btn.btn-primary(href="/cerrarSesion") Cerrar sesión
+                    nav.row.ancho.p-2
+                        .col-6
+                            a.btn.btn-primary(href="/paginaUsuario/" + idU)
+                                i.bi.bi-person-circle#icoOpUser
+                        .col-6
+                            a.btn.btn-primary(href="/cerrarSesion")
+                                i.bi.bi-box-arrow-left#icoOpUser
+                    
 
             else
                 a.btn.btn-primary(href="/iSesion") Inicio de sesión 

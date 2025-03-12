@@ -887,7 +887,20 @@ async function datosG(idG,idP){
         db.query("SELECT idCompra,compra.nombre,compra.valor,compra.Comentario, tipo.nombre as 'Tipo' FROM  grupo inner join compra inner join tipo on grupo.grupoid = compra.idGrupo and compra.idTipo = tipo.idtipo where grupoid = ?",[
             idG
         ]),
-        db.query("SELECT SUM(valor) as posicion, usuarios.nombre FROM usuarios LEFT JOIN compra ON usuarios.usuario = compra.usuario INNER JOIN pertenece ON usuarios.usuario = pertenece.userid WHERE pertenece.grupoid = ? and usuarios.usuario in(SELECT pertenece.userid from pertenece where pertenece.grupoid = ? and activo = 1) GROUP by usuarios.usuario ",[
+        db.query(SELECT 
+            `SUM(compra.valor) AS posicion, 
+            usuarios.nombre 
+        FROM usuarios
+        LEFT JOIN compra ON usuarios.usuario = compra.usuario
+        INNER JOIN pertenece ON usuarios.usuario = pertenece.userid
+        WHERE pertenece.grupoid = ?  
+        AND usuarios.usuario IN (
+            SELECT userid 
+            FROM pertenece 
+            WHERE grupoid = ? AND activo = 1
+        ) 
+        GROUP BY usuarios.usuario, usuarios.nombre
+        ORDER BY usuarios.usuario DESC;`,[
             idG,
             idG
         ])
