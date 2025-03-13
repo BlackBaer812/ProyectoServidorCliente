@@ -3,6 +3,9 @@
 import db from "../config/db.js"
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import PDFDocument from "pdfkit";
+import fs from "fs";
+import sharp from 'sharp';
 
 dotenv.config()
 
@@ -359,7 +362,8 @@ const accesoGrupo = async(req,res) =>{
                     gMedios : resultado[0],
                     datos: resultado[3],
                     datosP: resultado[4],
-                    idU:idP
+                    idU:idP,
+                    admin: resultado[6]
                 })
             }
         }
@@ -656,7 +660,7 @@ const anadirParticipante = async (req,res) =>{
 
             try{
                 await db.execute("CALL anadirUser(?,?,?,?,?,@sal)",[
-                    idU,
+                    req.body.usuario,
                     tlf,
                     email,
                     idG,
@@ -788,7 +792,7 @@ const aceptarInvitacion = async(req,res) =>{
                     idU
                 ]),
                 db.query("SELECT grupo.nombre, grupo.grupoid FROM grupo inner join pertenece on grupo.grupoid = pertenece.grupoid where pertenece.aceptado = 0 and pertenece.userid = ?",[
-                    req.params.idUsuario
+                    idU
                 ])
             ])
 
@@ -835,7 +839,7 @@ const rechazarInvitacion = async(req,res) =>{
                     idU
                 ]),
                 db.query("SELECT grupo.nombre, grupo.grupoid FROM grupo inner join pertenece on grupo.grupoid = pertenece.grupoid where pertenece.aceptado = 0 and pertenece.userid = ?",[
-                    req.params.idUsuario
+                    idU
                 ])
             ])
 
@@ -894,14 +898,12 @@ const paginaCerrar = async(req,res) => {
 
 const cerrarGrupo = async(req,res) => {
     if(identificacion(req)){
-        console.log(req.body.usuarioEli)
 
         const idG = req.session.grupo;
         const idU = req.session.usuario;
         const admin = req.session.admin;
 
         if(req.body.usuarioEli == idU){
-            console.log(req.body.password)
 
             await db.execute("CALL iSesion(?,?,@salida)", [
                 req.body.usuarioEli,
@@ -909,8 +911,6 @@ const cerrarGrupo = async(req,res) => {
             ])
 
             const rows = await db.execute("SELECT @salida AS salida");
-
-            console.log(rows[0][0].salida)
 
             if(rows[0][0].salida == 1){
 
@@ -943,13 +943,19 @@ const cerrarGrupo = async(req,res) => {
                             where pertenece.grupoid = ?
                             AND pertenece.activo = 1`,[
                             idG
+                        ]),
+                        db.query("SELECT nombre FROM grupo where grupoid = ?",[
+                            idG
+                        ]),
+                        db.query("SELECT email FROM pertenece inner join usuarios on pertenece.userid = usuarios.usuario where grupoid = ? and activo = 1",[
+                            idG
                         ])
                     ])
                 
                     let gMedios = resultados[0][0][0].sGrupo/resultados[0][0][0].tPersonas;
                 
                     let sActual = resultados[0][0][0].sPersona - gMedios;
-                    
+
                     let posicion = []
                     
                     resultados[4][0].forEach(persona =>{
@@ -983,14 +989,60 @@ const cerrarGrupo = async(req,res) => {
 
                                     if(posicion[i].posicion == 0){
                                         continua = false;
-                                        console.log("He terminado")
                                     }
                                 }
                             }
                         }
                     }
 
-                    console.log(debe)
+
+                    const pdf = await crearPDF(debe);
+
+                    const emails = resultados[6][0].map(element => element.email);
+                    
+                    const transporter = nodemailer.createTransport({
+                        service: 'gmail',  // Usando Gmail como servicio de correo
+                        auth: {
+                            user: 'marcosruizclemente@gmail.com', // Reemplaza con tu correo de Gmail
+                            pass:  process.env.CONTRA_EMAIL // Reemplaza con tu contraseña o una contraseña de aplicación
+                        }
+                    });
+                    
+                    emails.forEach(async email => {
+                        const mailOptions = {
+                            from: `marcosruizclemente@gmail.com`,      // Remitente
+                            to: email,         // Destinatario
+                            subject: `Situación actual del grupo: ` + resultados[5][0][0].nombre,  // Asunto
+                            // text:
+                            //     'Nombre: ' + entrada.user + '\n' +
+                            //     'Correo: ' + entrada.email + '\n' +
+                            //     'Teléfono: ' + entrada.telefono + '\n'
+                            // ,
+                            html: `
+                            <svg width="100" height="100" viewBox="0 0 258 258" xmlns="http://www.w3.org/2000/svg">
+                                <rect width="258" height="258" rx="20" fill="#0AFA62"></rect>
+                                <circle cx="89" cy="94" r="25" fill="#FA5A0A"></circle>
+                                <circle cx="169" cy="94" r="25" fill="#FA5A0A"></circle>
+                                <path d="M84 144 Q129 184, 174 144" stroke="#FA5A0A" stroke-width="10" fill="none"></path>
+                                <text x="129" y="228" font-size="36" font-family="Arial" fill="#FA5A0A" text-anchor="middle">Shared Control</text>
+                            </svg>
+                            <p>La situación actual del grupo es de ${sActual.toFixed(2)} €. A continuación se adjunta un pdf con las deudas actuales.<p>`,
+                            attachments:[
+                                {
+                                    filename: 'deudas.pdf',
+                                    content: pdf
+                                }
+                            ]
+                        };
+                        try{
+                            await transporter.sendMail(mailOptions);
+                        }
+                        catch(err){
+                            console.error(err)
+                        }
+                    })
+
+                    redirectPagPrincipal(req,res);
 
                 }
                 catch(err){
@@ -1001,14 +1053,14 @@ const cerrarGrupo = async(req,res) => {
             else{
                 const mensaje = "Error al validar contraseña y usuario";
 
-            res.render("cerrarGrupo",{
-                titulo:"Cerrar grupo",
-                identificado: identificacion(req),
-                idU,
-                idG,
-                admin,
-                mensaje
-            })
+                res.render("cerrarGrupo",{
+                    titulo:"Cerrar grupo",
+                    identificado: identificacion(req),
+                    idU,
+                    idG,
+                    admin,
+                    mensaje
+                })
             }
         }
         else{
@@ -1034,6 +1086,47 @@ const cerrarGrupo = async(req,res) => {
 
 const recuperacion = async(req,res) => {
 
+}
+
+async function crearPDF(datos){
+    const svgContent = `
+                <svg width="100" height="100" viewBox="0 0 258 258" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="258" height="258" rx="20" fill="#0AFA62"></rect>
+                    <circle cx="89" cy="94" r="25" fill="#FA5A0A"></circle>
+                    <circle cx="169" cy="94" r="25" fill="#FA5A0A"></circle>
+                    <path d="M84 144 Q129 184, 174 144" stroke="#FA5A0A" stroke-width="10" fill="none"></path>
+                    <text x="129" y="228" font-size="36" font-family="Arial" fill="#FA5A0A" text-anchor="middle">Shared Control</text>
+                </svg>
+            `;
+
+        const svgBuffer = Buffer.from(svgContent);
+        const pngBuffer = await sharp(svgBuffer).png().toBuffer();
+
+    return new Promise((resolve,reject) =>{
+        const doc = new PDFDocument();
+        let buffer = [];
+
+        doc.on('data', buffer.push.bind(buffer));
+        doc.on('end', () => {
+            const pdf = Buffer.concat(buffer);
+            resolve(pdf);
+        })
+        
+        doc.image(pngBuffer, { width: 100, height: 100 });
+        doc.fontSize(20).text('Resumen de Deudas', { align: 'center' });
+        doc.moveDown();
+
+        console.log(datos)
+
+        datos.forEach(element =>{
+            doc.fontSize(15).text('Nombre del que debe: ' + element.deudorN.charAt(0).toUpperCase() + element.deudorN.slice(1));
+            doc.text('Nombre del que recibe: ' + element.acreedirN.charAt(0).toUpperCase() + element.acreedirN.slice(1));
+            doc.text('Cantidad: ' + element.deuda.toFixed(2) + '€');
+            doc.moveDown();
+        })
+
+        doc.end();
+    })
 }
 
 async function grupos(usuario){

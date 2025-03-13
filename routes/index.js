@@ -50,4 +50,6 @@ router.get("/cerrarGrupo",paginaCerrar)
 
 router.post("/cerrarGrupo",cerrarGrupo)
 
+router.get("/enviarPDF",)
+
 export default router;
