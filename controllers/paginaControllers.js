@@ -894,21 +894,108 @@ const paginaCerrar = async(req,res) => {
 
 const cerrarGrupo = async(req,res) => {
     if(identificacion(req)){
-        console.log(req.body.usuario)
+        console.log(req.body.usuarioEli)
 
         const idG = req.session.grupo;
         const idU = req.session.usuario;
         const admin = req.session.admin;
 
-        if(req.body.usuario == idU){
+        if(req.body.usuarioEli == idU){
+            console.log(req.body.password)
+
             await db.execute("CALL iSesion(?,?,@salida)", [
-                req.body.usuario,
+                req.body.usuarioEli,
                 req.body.password
             ])
 
             const rows = await db.execute("SELECT @salida AS salida");
 
-            if(rows[0][0].salida = 0){
+            console.log(rows[0][0].salida)
+
+            if(rows[0][0].salida == 1){
+
+                try{
+                    await db.execute("CALL sActual (?,?,@sPersona, @sGrupo, @tPersonas)",[
+                        idG,
+                        idU
+                    ])
+                    
+                    let resultados = await Promise.all([
+                        db.query("SELECT @sPersona as sPersona, @sGrupo as sGrupo, @tPersonas as tPersonas"),
+                        db.query("SELECT nombre FROM grupo where grupoid = ?",[
+                            idG
+                        ]),
+                        db.query("SELECT idCompra,compra.nombre,compra.valor,compra.Comentario, tipo.nombre as 'Tipo' FROM  grupo inner join compra inner join tipo on grupo.grupoid = compra.idGrupo and compra.idTipo = tipo.idtipo where grupoid = ?",[
+                            idG
+                        ]),
+                        db.query(`Select sum(compra.valor) as 'posicion', usuarios.usuario, usuarios.nombre
+                            from compra
+                            INNER join usuarios
+                            on usuarios.usuario = compra.usuario
+                            where compra.idGrupo = ?
+                            GROUP by compra.usuario`,[
+                            idG
+                        ]),
+                        db.query(`SELECT pertenece.userid, usuarios.nombre, usuarios.email
+                            from pertenece
+                            INNER JOIN usuarios
+                            on usuarios.usuario = pertenece.userid
+                            where pertenece.grupoid = ?
+                            AND pertenece.activo = 1`,[
+                            idG
+                        ])
+                    ])
+                
+                    let gMedios = resultados[0][0][0].sGrupo/resultados[0][0][0].tPersonas;
+                
+                    let sActual = resultados[0][0][0].sPersona - gMedios;
+                    
+                    let posicion = []
+                    
+                    resultados[4][0].forEach(persona =>{
+                        posicion.push({
+                            posicion:resultados[3][0].find(element => element.usuario == persona.userid)? resultados[3][0].find(element => element.usuario == persona.userid).posicion- gMedios:0-gMedios,
+                            nombre: persona.nombre,
+                            usuario: persona.userid,
+                            email: persona.email
+                        })
+                    })
+
+                    let debe = []
+                    
+                    for(let i = 0; i<posicion.length;i++){
+                        if(posicion[i].posicion < 0){
+                            let continua = true;
+                            for(let j = 0; j<posicion.length && continua; j++){
+                                if(posicion[j].posicion > 0){
+                                    console.log(posicion[i].posicion,posicion[j].posicion)
+                                    let cantidad = posicion[i].posicion + posicion[j].posicion;
+                                    
+                                    debe.push({
+                                        deuda: posicion[j].posicion,
+                                        deudorN: posicion[i].nombre,
+                                        deudor: posicion[i].usuario,
+                                        acreedirN: posicion[j].nombre,
+                                        acreedor: posicion[j].usuario
+                                    })
+                                    posicion[i].posicion -= cantidad;
+                                    posicion[j].posicion -= cantidad;
+
+                                    if(posicion[i].posicion == 0){
+                                        continua = false;
+                                        console.log("He terminado")
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    console.log(debe)
+
+                }
+                catch(err){
+                    console.error(err)
+                }
                 
             }
             else{
@@ -1024,20 +1111,12 @@ async function datosG(idG,idP){
     let posicion = []
     
     resultados[4][0].forEach(persona =>{
-        if(resultados[3][0].find(element => element.usuario == persona.userid)){
-            posicion.push({
-                posicion: resultados[3][0].find(element => element.usuario == persona.userid).posicion- gMedios,
-                nombre: persona.nombre,
-                usuario: persona.usuario
-            })
-        }
-        else{
-            posicion.push({
-                posicion: 0 - gMedios,
-                nombre: persona.nombre,
-                usuario: persona.usuario
-            })
-        }
+        posicion.push({
+            posicion:resultados[3][0].find(element => element.usuario == persona.userid)? resultados[3][0].find(element => element.usuario == persona.userid).posicion- gMedios:0-gMedios,
+            nombre: persona.nombre,
+            usuario: persona.userid,
+            email: persona.email
+        })
     })
 
     return [gMedios,sActual,resultados[1][0][0].nombre,resultados[2][0],posicion,resultados[0][0][0].tPersonas,admin]
