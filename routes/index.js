@@ -1,5 +1,5 @@
 import express from 'express';
-import { cerrarSesion, pagCrearGrupo, iSesion, paginaInicio, paginaISesion, paginaRegistro, recuperacion, registro, verifica, volverPPrincial, crearGrupo, accesoGrupo,crearFactura, paginaFactura, borrar, paginaFacturaParams, paginaAnadir, anadirParticipante, paginaUsuario, aceptarInvitacion, rechazarInvitacion } from '../controllers/paginaControllers.js';
+import { cerrarSesion, pagCrearGrupo, iSesion, paginaInicio, paginaISesion, paginaRegistro, recuperacion, registro, verifica, volverPPrincial, crearGrupo, accesoGrupo,crearFactura, paginaFactura, borrar, paginaFacturaParams, paginaAnadir, anadirParticipante, paginaUsuario, aceptarInvitacion, rechazarInvitacion, paginaCerrar, cerrarGrupo } from '../controllers/paginaControllers.js';
 
 const router = express.Router();
 
@@ -45,5 +45,9 @@ router.get("/paginaUsuario/:idUsuario",paginaUsuario)
 router.get("/aceptar/:idGrupo",aceptarInvitacion)
 
 router.get("/rechazar/:idGrupo",rechazarInvitacion)
+
+router.get("/cerrarGrupo",paginaCerrar)
+
+router.post("/cerrarGrupo",cerrarGrupo)
 
 export default router;

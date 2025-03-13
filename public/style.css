@@ -29,3 +29,7 @@ footer{
 #icoOpUser{
     font-size:30px;
 }
+
+#usuarioEli:hover {
+    cursor:default;
+}

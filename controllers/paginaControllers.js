@@ -37,6 +37,9 @@ const iSesion = async(req,res)=>{
         
         let idU = req.session.usuario;
 
+        delete req.session.grupo;
+        delete req.session.admin;
+
         const alerta = await db.query("SELECT grupo.nombre, grupo.grupoid FROM grupo inner join pertenece on grupo.grupoid = pertenece.grupoid where pertenece.aceptado = 0 and pertenece.userid = ?",[
             idU
         ]);
@@ -330,6 +333,8 @@ const accesoGrupo = async(req,res) =>{
 
             const resultado = await datosG(idG,idP);
 
+            req.session.admin = resultado[6];
+
             req.session.grupo = idG;
 
             if(resultado[5] != 1){
@@ -376,6 +381,7 @@ const accesoGrupo = async(req,res) =>{
 const paginaFactura = async(req,res)=>{
     if(identificacion(req)){
         let idU = req.session.usuario;
+        const admin = req.session.admin;
 
         try{
             let resp = await db.query("SELECT * FROM tipo");
@@ -385,7 +391,8 @@ const paginaFactura = async(req,res)=>{
                 identificado: identificacion(req),
                 tipos: resp[0],
                 idG:req.session.grupo,
-                idU
+                idU,
+                admin
             })
         }
         catch(err){
@@ -406,6 +413,7 @@ const paginaFactura = async(req,res)=>{
 const paginaFacturaParams = async(req,res) => {
     if(identificacion(req)){
         let idU = req.session.usuario;
+        const admin = administrador(idU,req.params.idG);
 
         req.session.grupo = req.params.idG;
         try{
@@ -416,7 +424,8 @@ const paginaFacturaParams = async(req,res) => {
                 identificado: identificacion(req),
                 tipos: resp[0],
                 idG:req.session.grupo,
-                idU
+                idU,
+                admin
             })
         }
         catch(err){
@@ -438,6 +447,8 @@ const crearFactura = async(req,res) =>{
     if(identificacion(req)){
         let idU = req.session.usuario;
         let idG = req.session.grupo;
+        
+        const admin = req.session.admin;
 
         let datos = req.body;
 
@@ -463,7 +474,9 @@ const crearFactura = async(req,res) =>{
                     identificado: identificacion(req),
                     tipos: resp[0],
                     idG,
-                    idU
+                    idU,
+                    admin
+
                 })
             }
             catch(err){
@@ -483,7 +496,8 @@ const crearFactura = async(req,res) =>{
                     nom: datos.nombre,
                     com: datos.comentario,
                     idG,
-                    idU
+                    idU,
+                    admin
                 })
             }
         }
@@ -502,7 +516,8 @@ const crearFactura = async(req,res) =>{
                 nom: datos.nombre,
                 com: datos.comentario,
                 idG,
-                idU
+                idU,
+                admin
             })  
         }
         
@@ -547,7 +562,10 @@ const borrar = async (req,res) =>{
                 res.render("grupoP",{
                     titulo:"Pagina del grupo " + resultado[2],
                     identificado: identificacion(req),
-                    borrado: salida[0].affectedRows
+                    borrado: salida[0].affectedRows,
+                    idG,
+                    idU:idP,
+                    admin: resultado[6]
                 })
             }
         }
@@ -574,7 +592,8 @@ const borrar = async (req,res) =>{
                 res.render("grupoP",{
                     titulo:"Pagina del grupo " + resultado[2],
                     identificado: identificacion(req),
-                    idU:idP
+                    idU:idP,
+                    admin: resultado[6]
                 })
             }
         }
@@ -591,16 +610,19 @@ const paginaAnadir = async(req,res) =>{
     if(identificacion(req)){
         try{
             const idG = req.session.grupo;
-            const resultado = await db.query("SELECT usuarios.nombre, usuarios.telefono, usuarios.email FROM pertenece inner join usuarios on pertenece.userid = usuario where grupoid = ?",
+            const resultado = await db.query("SELECT usuarios.nombre, usuarios.telefono, usuarios.email FROM pertenece inner join usuarios on pertenece.userid = usuario where grupoid = ? and pertenece.activo = 1",
                 idG
             )
+
+            const admin = req.session.admin;
 
             res.render("anadirU",{
                 titulo:"Añadir usuario",
                 identificado: identificacion(req),
                 datos: resultado[0],
                 idG,
-                idU: req.session.usuario
+                idU: req.session.usuario,
+                admin
             })
         }
         catch(err){
@@ -623,10 +645,11 @@ const anadirParticipante = async (req,res) =>{
     if(identificacion(req)){
         let body = req.body
         const idG = req.session.grupo;
+        const idU = req.session.usuario;
+        const admi = req.session.admin;
 
         if(body.telefono != "" || body.email != ""){
 
-            const idU = req.body.usuario;
             const tlf = req.body.telefono == 0 ? null: req.body.telefono;
             const email = req.body.email;
             const admin = req.body.admin == "on" ? 1:0;
@@ -657,7 +680,8 @@ const anadirParticipante = async (req,res) =>{
                         tipo: 0,
                         mensaje,
                         idG,
-                        idU: req.session.usuario
+                        idU,
+                        admin:admi
                     })
                 }
                 else{
@@ -670,7 +694,8 @@ const anadirParticipante = async (req,res) =>{
                         mensaje,
                         tipo: 1,
                         idG,
-                        idU: req.session.usuario
+                        idU,
+                        admin:admi
                     })
                 }
             }
@@ -695,7 +720,8 @@ const anadirParticipante = async (req,res) =>{
                     datos: resultado[0],
                     mensaje,
                     idG,
-                    idU: req.session.usuario
+                    idU,
+                    admin: admi
                 })
             }
             catch(err){
@@ -716,6 +742,10 @@ const anadirParticipante = async (req,res) =>{
 
 const paginaUsuario = async(req,res) =>{
     if(identificacion(req)){
+
+        delete req.session.admin;
+        delete req.session.grupo;
+
         try{
 
             const resultado = await db.query("SELECT grupo.nombre, grupo.grupoid FROM grupo inner join pertenece on grupo.grupoid = pertenece.grupoid where pertenece.aceptado = 0 and pertenece.userid = ?",[
@@ -838,6 +868,83 @@ const rechazarInvitacion = async(req,res) =>{
 
 }
 
+const paginaCerrar = async(req,res) => {
+    if(identificacion(req)){
+
+        const idG = req.session.grupo;
+        const idU = req.session.usuario;
+
+        const admin = req.session.admin;
+
+        res.render("cerrarGrupo",{
+            titulo:"Cerrar grupo",
+            identificado: identificacion(req),
+            idU,
+            idG,
+            admin
+        })
+    }
+    else{
+        res.render("indice",{
+            titulo:"Inicio",
+            identificado: identificacion(req)
+        })
+    }
+}
+
+const cerrarGrupo = async(req,res) => {
+    if(identificacion(req)){
+        console.log(req.body.usuario)
+
+        const idG = req.session.grupo;
+        const idU = req.session.usuario;
+        const admin = req.session.admin;
+
+        if(req.body.usuario == idU){
+            await db.execute("CALL iSesion(?,?,@salida)", [
+                req.body.usuario,
+                req.body.password
+            ])
+
+            const rows = await db.execute("SELECT @salida AS salida");
+
+            if(rows[0][0].salida = 0){
+                
+            }
+            else{
+                const mensaje = "Error al validar contraseña y usuario";
+
+            res.render("cerrarGrupo",{
+                titulo:"Cerrar grupo",
+                identificado: identificacion(req),
+                idU,
+                idG,
+                admin,
+                mensaje
+            })
+            }
+        }
+        else{
+            const mensaje = "El usuario con el que estas intentando cerrar el grupo no coincide con el usuario con el que has iniciado sesión";
+
+            res.render("cerrarGrupo",{
+                titulo:"Cerrar grupo",
+                identificado: identificacion(req),
+                idU,
+                idG,
+                admin,
+                mensaje
+            })
+        }
+    }
+    else{
+        res.render("indice",{
+            titulo:"Inicio",
+            identificado: identificacion(req)
+        })
+    }
+}
+
 const recuperacion = async(req,res) => {
 
 }
@@ -902,7 +1009,8 @@ async function datosG(idG,idP){
             from pertenece
             INNER JOIN usuarios
             on usuarios.usuario = pertenece.userid
-            where pertenece.grupoid = ?`,[
+            where pertenece.grupoid = ?
+            AND pertenece.activo = 1`,[
             idG
         ])
     ])
@@ -935,6 +1043,22 @@ async function datosG(idG,idP){
     return [gMedios,sActual,resultados[1][0][0].nombre,resultados[2][0],posicion,resultados[0][0][0].tPersonas,admin]
 }
 
+async function administrador(idG,idU){
+    let admin = await db.query(`SELECT pertenece.admin
+        from pertenece
+        INNER JOIN usuarios
+        on usuarios.usuario = pertenece.userid
+        where pertenece.grupoid = ?
+        AND pertenece.userid = ?
+        AND pertenece.activo = 1`,[
+        idG,
+        idU
+    ])
+
+    admin = admin[0] == 1?true:false;
+
+    return admin;
+}
 
 
 function identificacion(request){
@@ -962,6 +1086,7 @@ export{
     pagCrearGrupo,
     paginaAnadir,
     paginaUsuario,
+    paginaCerrar,
     iSesion,
     registro,
     verifica,
@@ -974,5 +1099,6 @@ export{
     recuperacion,
     borrar,
     aceptarInvitacion,
-    rechazarInvitacion
+    rechazarInvitacion,
+    cerrarGrupo
 }
