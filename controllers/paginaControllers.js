@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import PDFDocument from "pdfkit";
 import fs from "fs";
 import sharp from 'sharp';
+import pdfTable from "pdfkit-table";
 
 dotenv.config()
 
@@ -995,8 +996,21 @@ const cerrarGrupo = async(req,res) => {
                         }
                     }
 
+                    const svgContent = `
+                                        <svg width="100" height="100" viewBox="0 0 258 258" xmlns="http://www.w3.org/2000/svg">
+                                            <rect width="258" height="258" rx="20" fill="#0AFA62"></rect>
+                                            <circle cx="89" cy="94" r="25" fill="#FA5A0A"></circle>
+                                            <circle cx="169" cy="94" r="25" fill="#FA5A0A"></circle>
+                                            <path d="M84 144 Q129 184, 174 144" stroke="#FA5A0A" stroke-width="10" fill="none"></path>
+                                            <text x="129" y="228" font-size="36" font-family="Arial" fill="#FA5A0A" text-anchor="middle">Shared Control</text>
+                                        </svg>
+                                    `;
 
-                    const pdf = await crearPDF(debe);
+                    const imagen = await crearImagen(svgContent);
+
+                    const imagenSrc = `data:image/png;base64,${imagen.toString('base64')}`;
+
+                    const pdf = await crearPDF(debe, svgContent);
 
                     const emails = resultados[6][0].map(element => element.email);
                     
@@ -1013,19 +1027,12 @@ const cerrarGrupo = async(req,res) => {
                             from: `marcosruizclemente@gmail.com`,      // Remitente
                             to: email,         // Destinatario
                             subject: `Situación actual del grupo: ` + resultados[5][0][0].nombre,  // Asunto
-                            // text:
+                            // text:x
                             //     'Nombre: ' + entrada.user + '\n' +
                             //     'Correo: ' + entrada.email + '\n' +
                             //     'Teléfono: ' + entrada.telefono + '\n'
                             // ,
-                            html: `
-                            <svg width="100" height="100" viewBox="0 0 258 258" xmlns="http://www.w3.org/2000/svg">
-                                <rect width="258" height="258" rx="20" fill="#0AFA62"></rect>
-                                <circle cx="89" cy="94" r="25" fill="#FA5A0A"></circle>
-                                <circle cx="169" cy="94" r="25" fill="#FA5A0A"></circle>
-                                <path d="M84 144 Q129 184, 174 144" stroke="#FA5A0A" stroke-width="10" fill="none"></path>
-                                <text x="129" y="228" font-size="36" font-family="Arial" fill="#FA5A0A" text-anchor="middle">Shared Control</text>
-                            </svg>
+                            html:`<img src = `+ imagenSrc + `></img>
                             <p>La situación actual del grupo es de ${sActual.toFixed(2)} €. A continuación se adjunta un pdf con las deudas actuales.<p>`,
                             attachments:[
                                 {
@@ -1088,22 +1095,19 @@ const recuperacion = async(req,res) => {
 
 }
 
-async function crearPDF(datos){
-    const svgContent = `
-                <svg width="100" height="100" viewBox="0 0 258 258" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="258" height="258" rx="20" fill="#0AFA62"></rect>
-                    <circle cx="89" cy="94" r="25" fill="#FA5A0A"></circle>
-                    <circle cx="169" cy="94" r="25" fill="#FA5A0A"></circle>
-                    <path d="M84 144 Q129 184, 174 144" stroke="#FA5A0A" stroke-width="10" fill="none"></path>
-                    <text x="129" y="228" font-size="36" font-family="Arial" fill="#FA5A0A" text-anchor="middle">Shared Control</text>
-                </svg>
-            `;
+async function crearImagen(svgContent){
+    const svgBuffer = Buffer.from(svgContent);
+    const pngBuffer = await sharp(svgBuffer).png().toBuffer();
+    return pngBuffer
+}
 
-        const svgBuffer = Buffer.from(svgContent);
-        const pngBuffer = await sharp(svgBuffer).png().toBuffer();
+async function crearPDF(datos, svgContent){
+
+    const pngBuffer = await crearImagen(svgContent); 
 
     return new Promise((resolve,reject) =>{
-        const doc = new PDFDocument();
+        const doc = new pdfTable();
+
         let buffer = [];
 
         doc.on('data', buffer.push.bind(buffer));
@@ -1112,18 +1116,23 @@ async function crearPDF(datos){
             resolve(pdf);
         })
         
-        doc.image(pngBuffer, { width: 100, height: 100 });
-        doc.fontSize(20).text('Resumen de Deudas', { align: 'center' });
-        doc.moveDown();
+        if (pngBuffer) {
+            doc.image(pngBuffer, 50, 50, { width: 100 });
+        }
 
-        console.log(datos)
+        doc.fontSize(20).text("Resumen de Deudas", { align: "center" });
+        doc.moveDown(5);
 
-        datos.forEach(element =>{
-            doc.fontSize(15).text('Nombre del que debe: ' + element.deudorN.charAt(0).toUpperCase() + element.deudorN.slice(1));
-            doc.text('Nombre del que recibe: ' + element.acreedirN.charAt(0).toUpperCase() + element.acreedirN.slice(1));
-            doc.text('Cantidad: ' + element.deuda.toFixed(2) + '€');
-            doc.moveDown();
-        })
+        const tabla = {
+            headers: ["Deudor", "Acreedor", "Cantidad (€)"],
+            rows: datos.map((element) => [
+                element.deudorN.charAt(0).toUpperCase() + element.deudorN.slice(1),
+                element.acreedirN.charAt(0).toUpperCase() + element.acreedirN.slice(1),
+                element.deuda.toFixed(2) + "€",
+            ]),
+        };
+
+        doc.table(tabla, { width: 500 });
 
         doc.end();
     })
