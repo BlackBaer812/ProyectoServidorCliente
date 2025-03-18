@@ -4,3 +4,11 @@ document.addEventListener("DOMContentLoaded", function () {
         return new bootstrap.Popover(popoverTriggerEl);
     });
 });
+
+function siguiente(){
+    console.log("siguiente")
+}
+
+function anterior(){
+    console.log("anterior")
+}

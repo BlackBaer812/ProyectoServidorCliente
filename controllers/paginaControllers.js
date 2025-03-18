@@ -4,21 +4,35 @@ import db from "../config/db.js"
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import PDFDocument from "pdfkit";
-import fs from "fs";
 import sharp from 'sharp';
 import pdfTable from "pdfkit-table";
 
 dotenv.config()
 
+
+var pagActual = null;
+var titActual = null;
+
+var paginas = ["principal","crearGrupo","grupoP","aFactura","pagUsuario","cerrarGrupo","anadirU"];
+
+/**
+ * Función para redirigir a la página de inicio
+ * @param {*} req 
+ * @param {*} res 
+ */
 const paginaInicio = async (req, res) => {
     
-
     res.render("indice", {
         titulo: "Inicio",
         identificado: identificacion(req)
     });
 }
 
+/**
+ * Función de redirección a la página de registro
+ * @param {*} req 
+ * @param {*} res 
+ */
 const paginaRegistro = async (req,res) =>{
     
     res.render("registro", {
@@ -27,6 +41,11 @@ const paginaRegistro = async (req,res) =>{
     });
 }
 
+/**
+ * Función de redirección a la página de inicio de sesión
+ * @param {*} req 
+ * @param {*} res 
+ */
 const paginaISesion = async(req,res)=>{
     res.render("iSesion",{
         titulo: "Inicio de sesión",
@@ -137,6 +156,11 @@ const iSesion = async(req,res)=>{
     
 }
 
+/**
+ * Función para cerrar la sesión
+ * @param {*} req 
+ * @param {*} res 
+ */
 const cerrarSesion = async (req,res) => {
     req.session.destroy(err =>{
         if (err) {
@@ -147,6 +171,11 @@ const cerrarSesion = async (req,res) => {
     })
 }
 
+/**
+ * función para verificar una url de activación, redirige a la página de inicio de sesión
+ * @param {*} req 
+ * @param {*} res 
+ */
 const verifica = async(req,res)=>{
     const {verificacion,usuario} = req.params;
 
@@ -166,6 +195,13 @@ const verifica = async(req,res)=>{
     }
 }
 
+/**
+ * Función de registro de usuario
+ * Se envia un email con un link de activación
+ * Redirige a la página de inicio si el usuario ya existe
+ * @param {*} req 
+ * @param {*} res 
+ */
 const registro = async (req,res)=>{
 
     
@@ -258,6 +294,11 @@ const registro = async (req,res)=>{
     }
 }
 
+/**
+ * Función para redirigir a la página de creación de grupo
+ * @param {*} req 
+ * @param {*} res 
+ */
 const pagCrearGrupo = async(req,res) =>{
     if(identificacion(req)){
         res.render("crearGrupo",{
@@ -276,6 +317,11 @@ const pagCrearGrupo = async(req,res) =>{
 
 }
 
+/**
+ * Función para volver a la pagina principal desde cualquier página
+ * @param {*} req 
+ * @param {*} res 
+ */
 const volverPPrincial = async(req,res) =>{
     if(identificacion(req)){
         const envio = await grupos(req.session.usuario);
@@ -306,6 +352,11 @@ const volverPPrincial = async(req,res) =>{
     }
 }
 
+/**
+ * Función para crear un nuevo grupo, si no se está identificado redirige a la página principal
+ * @param {*} req 
+ * @param {*} res 
+ */
 const crearGrupo = async(req,res) =>{
     if(identificacion(req)){
 
@@ -341,6 +392,11 @@ const crearGrupo = async(req,res) =>{
     }
 }
 
+/**
+ * Función para acceder a la página de un grupo, redirige a la página principal si hay error
+ * @param {*} req 
+ * @param {*} res 
+ */
 const accesoGrupo = async(req,res) =>{
 
     if(identificacion(req)){
@@ -397,6 +453,11 @@ const accesoGrupo = async(req,res) =>{
     }
 }
 
+/**
+ * función para redirigir a la página de crear factura, sino redirige a la página principal
+ * @param {*} req 
+ * @param {*} res 
+ */
 const paginaFactura = async(req,res)=>{
     if(identificacion(req)){
         let idU = req.session.usuario;
@@ -429,6 +490,11 @@ const paginaFactura = async(req,res)=>{
     }
 }
 
+/**
+ * función para acceder a la página de un grupo por parametros, redirige a la página principal si no se está identificado
+ * @param {*} req 
+ * @param {*} res 
+ */
 const paginaFacturaParams = async(req,res) => {
     if(identificacion(req)){
         let idU = req.session.usuario;
@@ -462,6 +528,11 @@ const paginaFacturaParams = async(req,res) => {
     }
 }
 
+/**
+ * Función para crear una factura, redirige a la página de crear factura
+ * @param {*} req 
+ * @param {*} res 
+ */
 const crearFactura = async(req,res) =>{
     if(identificacion(req)){
         let idU = req.session.usuario;
@@ -550,6 +621,11 @@ const crearFactura = async(req,res) =>{
     }
 }
 
+/**
+ * Función para borrar una factura, redirige a la página del grupo
+ * @param {*} req 
+ * @param {*} res 
+ */
 const borrar = async (req,res) =>{
     if(identificacion(req)){
         const idG = req.session.grupo;
@@ -625,32 +701,40 @@ const borrar = async (req,res) =>{
     }
 }
 
+/**
+ * función para redirigir a la página que permite añadir usaurios a un grupo, si no redirige a la página principal
+ * @param {*} req 
+ * @param {*} res 
+ */
 const paginaAnadir = async(req,res) =>{
     if(identificacion(req)){
-        try{
-            const idG = req.session.grupo;
-            const resultado = await db.query("SELECT usuarios.nombre, usuarios.telefono, usuarios.email FROM pertenece inner join usuarios on pertenece.userid = usuario where grupoid = ? and pertenece.activo = 1",
-                idG
-            )
-
-            const admin = req.session.admin;
-
-            res.render("anadirU",{
-                titulo:"Añadir usuario",
-                identificado: identificacion(req),
-                datos: resultado[0],
-                idG,
-                idU: req.session.usuario,
-                admin
-            })
+        if(req.session.admin){
+            try{
+                const idG = req.session.grupo;
+                const resultado = await db.query("SELECT usuarios.nombre, usuarios.telefono, usuarios.email FROM pertenece inner join usuarios on pertenece.userid = usuario where grupoid = ? and pertenece.activo = 1",
+                    idG
+                )
+    
+                const admin = req.session.admin;
+    
+                res.render("anadirU",{
+                    titulo:"Añadir usuario",
+                    identificado: identificacion(req),
+                    datos: resultado[0],
+                    idG,
+                    idU: req.session.usuario,
+                    admin
+                })
+            }
+            catch(err){
+                console.error(err)
+    
+                await redirectPagPrincipal(req,res)
+            }
         }
-        catch(err){
-            console.error(err)
-
+        else{
             await redirectPagPrincipal(req,res)
         }
-
-        
     }
     else{
         res.render("indice",{
@@ -660,6 +744,11 @@ const paginaAnadir = async(req,res) =>{
     }
 }
 
+/**
+ * Función para añadir a un participante a un grupo, redirige a la página de añadir usuario si se es adminsitrador del grupo, si no redirige a la página principal
+ * @param {*} req 
+ * @param {*} res 
+ */
 const anadirParticipante = async (req,res) =>{
     if(identificacion(req)){
         let body = req.body
@@ -667,88 +756,93 @@ const anadirParticipante = async (req,res) =>{
         const idU = req.session.usuario;
         const admi = req.session.admin;
 
-        if(body.telefono != "" || body.email != ""){
+        if(admi){
+            if(body.telefono != "" || body.email != ""){
 
-            const tlf = req.body.telefono == 0 ? null: req.body.telefono;
-            const email = req.body.email;
-            const admin = req.body.admin == "on" ? 1:0;
-
-            try{
-                await db.execute("CALL anadirUser(?,?,?,?,?,@sal)",[
-                    req.body.usuario,
-                    tlf,
-                    email,
-                    idG,
-                    admin
-                ])
-
-                const datos = await Promise.all([
-                    db.query("SELECT @sal as salida"),
-                    db.query("SELECT usuarios.nombre, usuarios.telefono, usuarios.email FROM pertenece inner join usuarios on pertenece.userid = usuario where grupoid = ?",
-                        idG
-                    )
-                ])
-
-                if(datos[0][0][0].salida == 0){
-                    let mensaje = "Usuario dado de alta correctamente";
-
+                const tlf = req.body.telefono == 0 ? null: req.body.telefono;
+                const email = req.body.email;
+                const admin = req.body.admin == "on" ? 1:0;
+    
+                try{
+                    await db.execute("CALL anadirUser(?,?,?,?,?,@sal)",[
+                        req.body.usuario,
+                        tlf,
+                        email,
+                        idG,
+                        admin
+                    ])
+    
+                    const datos = await Promise.all([
+                        db.query("SELECT @sal as salida"),
+                        db.query("SELECT usuarios.nombre, usuarios.telefono, usuarios.email FROM pertenece inner join usuarios on pertenece.userid = usuario where grupoid = ?",
+                            idG
+                        )
+                    ])
+    
+                    if(datos[0][0][0].salida == 0){
+                        let mensaje = "Usuario dado de alta correctamente";
+    
+                        res.render("anadirU",{
+                            titulo:"Añadir usuario",
+                            identificado: identificacion(req),
+                            datos: datos[1][0],
+                            tipo: 0,
+                            mensaje,
+                            idG,
+                            idU,
+                            admin:admi
+                        })
+                    }
+                    else{
+                        let mensaje = "No se ha dado de alta al usuario";
+    
+                        res.render("anadirU",{
+                            titulo:"Añadir usuario",
+                            identificado: identificacion(req),
+                            datos: datos[1][0],
+                            mensaje,
+                            tipo: 1,
+                            idG,
+                            idU,
+                            admin:admi
+                        })
+                    }
+                }
+                catch(err){
+                    console.error(err)
+    
+                    await redirectPagPrincipal(req,res)
+                }
+    
+            }
+            else{
+    
+                try{
+                    
+                    const resultado = await usuariosGrupo(idG);
+    
+                    let mensaje = "Debe rellenar al menos dos campos";
+    
                     res.render("anadirU",{
                         titulo:"Añadir usuario",
                         identificado: identificacion(req),
-                        datos: datos[1][0],
-                        tipo: 0,
+                        datos: resultado[0],
                         mensaje,
                         idG,
                         idU,
-                        admin:admi
+                        admin: admi
                     })
                 }
-                else{
-                    let mensaje = "No se ha dado de alta al usuario";
-
-                    res.render("anadirU",{
-                        titulo:"Añadir usuario",
-                        identificado: identificacion(req),
-                        datos: datos[1][0],
-                        mensaje,
-                        tipo: 1,
-                        idG,
-                        idU,
-                        admin:admi
-                    })
+                catch(err){
+                    console.error(err)
+    
+                    await redirectPagPrincipal(req,res)
                 }
+                
             }
-            catch(err){
-                console.error(err)
-
-                await redirectPagPrincipal(req,res)
-            }
-
         }
         else{
-
-            try{
-                
-                const resultado = await usuariosGrupo(idG);
-
-                let mensaje = "Debe rellenar al menos dos campos";
-
-                res.render("anadirU",{
-                    titulo:"Añadir usuario",
-                    identificado: identificacion(req),
-                    datos: resultado[0],
-                    mensaje,
-                    idG,
-                    idU,
-                    admin: admi
-                })
-            }
-            catch(err){
-                console.error(err)
-
-                await redirectPagPrincipal(req,res)
-            }
-            
+            await redirectPagPrincipal(req,res)
         }
     }
     else{
@@ -759,6 +853,11 @@ const anadirParticipante = async (req,res) =>{
     }
 }
 
+/**
+ * Función para acceder a al area privada del usuario
+ * @param {*} req 
+ * @param {*} res 
+ */
 const paginaUsuario = async(req,res) =>{
     if(identificacion(req)){
 
@@ -793,6 +892,11 @@ const paginaUsuario = async(req,res) =>{
     }
 }
 
+/**
+ * Función para aceptar una invitación a un grupo, redirige a la página de usuario
+ * @param {*} req 
+ * @param {*} res 
+ */
 const aceptarInvitacion = async(req,res) =>{
 
     if(identificacion(req)){
@@ -840,6 +944,11 @@ const aceptarInvitacion = async(req,res) =>{
 
 }
 
+/**
+ * Función para rechazar una invitación a un grupo, redirige a la página de usuario
+ * @param {*} req 
+ * @param {*} res 
+ */
 const rechazarInvitacion = async(req,res) =>{
 
     if(identificacion(req)){
@@ -887,6 +996,11 @@ const rechazarInvitacion = async(req,res) =>{
 
 }
 
+/**
+ * Función para redirigir a la de cierre de grupo
+ * @param {*} req 
+ * @param {*} res 
+ */
 const paginaCerrar = async(req,res) => {
     if(identificacion(req)){
 
@@ -894,14 +1008,18 @@ const paginaCerrar = async(req,res) => {
         const idU = req.session.usuario;
 
         const admin = req.session.admin;
-
-        res.render("cerrarGrupo",{
-            titulo:"Cerrar grupo",
-            identificado: identificacion(req),
-            idU,
-            idG,
-            admin
-        })
+        if(admin){
+            res.render("cerrarGrupo",{
+                titulo:"Cerrar grupo",
+                identificado: identificacion(req),
+                idU,
+                idG,
+                admin
+            })
+        }
+        else{
+            await redirectPagPrincipal(req,res)
+        }
     }
     else{
         res.render("indice",{
@@ -911,6 +1029,11 @@ const paginaCerrar = async(req,res) => {
     }
 }
 
+/**
+ * Función para cerrar un grupo, se envía un email con la situación actual del grupo y las deudas, se redirige a la página principal
+ * @param {*} req 
+ * @param {*} res 
+ */
 const cerrarGrupo = async(req,res) => {
     if(identificacion(req)){
 
@@ -1109,12 +1232,23 @@ const recuperacion = async(req,res) => {
 
 }
 
+/**
+ * Función para crear la imagen de un svg
+ * @param {String} svgContent Contenido del svg (logo)
+ * @returns Devuelve un buffer con la imagen creada
+ */
 async function crearImagen(svgContent){
     const svgBuffer = Buffer.from(svgContent);
     const pngBuffer = await sharp(svgBuffer).png().toBuffer();
     return pngBuffer
 }
 
+/**
+ * Función para generar un pdf con las deudas actuales
+ * @param {Array} datos Array de objetos con las deudas actuales 
+ * @param {String} svgContent objeto svg (logo) 
+ * @returns {Promise} Promesa con el pdf
+ */
 async function crearPDF(datos, svgContent){
 
     const pngBuffer = await crearImagen(svgContent); 
@@ -1158,20 +1292,33 @@ async function crearPDF(datos, svgContent){
  * @returns {Array} Array de objetos con los grupos que hemos aceptado
  */
 async function grupos(usuario){
-    const grupos = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ? and pertenece.aceptado = 1 and pertenece.activo = 1",[
+    const grupos = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ? and pertenece.aceptado = 1 and pertenece.activo = 1 limit 2",[
         usuario
     ])
+
+    pagActual = 0;
+
+    titActual = 0;
 
     return grupos[0];
 }
 
+/**
+ * Función para saber que usuarios pertenecen a un grupo
+ * @param {number} idG 
+ * @returns {Array} Array de objetos con los datos de los usuarios que pertenecen a un grupo
+ */
 async function usuariosGrupo(idG) {
     return await db.query("SELECT usuarios.nombre, usuarios.telefono, usuarios.email FROM pertenece inner join usuarios on pertenece.userid = usuario where grupoid = ?",
         idG
     )
 }
 
-
+/**
+ * Función para redireccionar a la página principal
+ * @param {*} req 
+ * @param {*} res 
+ */
 async function redirectPagPrincipal(req,res){
     const envio = await grupos(req.session.usuario);
 
@@ -1186,7 +1333,7 @@ async function redirectPagPrincipal(req,res){
 }
 
 /**
- * 
+ * Función para obtener los datos de un grupo respecto a su situción actual y los gastos medios
  * @param {number} idG id del grupo 
  * @param {string} idP id del usuario
  * @returns Array [Gastos Medios, Situación Actual del usuario, Nombre del grupo, Datos de las operaciones realizadas, Datos de las personas en el grupo]
@@ -1243,6 +1390,12 @@ async function datosG(idG,idP){
     return [gMedios,sActual,resultados[1][0][0].nombre,resultados[2][0],posicion,resultados[0][0][0].tPersonas,admin]
 }
 
+/**
+ * Función para obtener si un usuario es administrador de un grupo
+ * @param {number} idG id del grupo que estamos consultando
+ * @param {String} idU id del usaurio que estamos consultando
+ * @returns {boolean} true si es administrador, false si no lo es
+ */
 async function administrador(idG,idU){
     let admin = await db.query(`SELECT pertenece.admin
         from pertenece
@@ -1260,7 +1413,11 @@ async function administrador(idG,idU){
     return admin;
 }
 
-
+/**
+ * Función para saber si un usario esta identificado
+ * @param {*} request 
+ * @returns {boolean} true si esta identificado, false si no lo esta
+ */
 function identificacion(request){
     let salida = false
     if(request.session.usuario != "" & request.session.usuario != undefined){
@@ -1268,6 +1425,11 @@ function identificacion(request){
     }
     return salida;
 }
+
+/**
+ * Función para generar las cadenas aleatorias asociadas a la verificación de un usuario
+ * @returns {String} cadena aleatoria de 8 caracteres
+ */
 function generarAleatorio(){
     const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let resultado = "";
