@@ -34,6 +34,11 @@ const paginaISesion = async(req,res)=>{
     })
 }
 
+/**
+ * Pagina de principal de usuario (se muestran las opciones de usuario)
+ * @param {*} req 
+ * @param {*} res 
+ */
 const iSesion = async(req,res)=>{
 
     if(req.session.usuario != undefined){
@@ -44,6 +49,9 @@ const iSesion = async(req,res)=>{
         delete req.session.grupo;
         delete req.session.admin;
 
+        /*
+        Consulta de los grupos que no hemos aceptado aún
+        */
         const alerta = await db.query("SELECT grupo.nombre, grupo.grupoid FROM grupo inner join pertenece on grupo.grupoid = pertenece.grupoid where pertenece.aceptado = 0 and pertenece.userid = ?",[
             idU
         ]);
@@ -83,6 +91,9 @@ const iSesion = async(req,res)=>{
 
                 let idU = req.session.usuario;
 
+                /**
+                 * Consulta de los grupos que no hemos aceptado aún
+                 */
                 const resultado = await Promise.all([
                     db.query("SELECT grupo.nombre, grupo.grupoid FROM grupo inner join pertenece on grupo.grupoid = pertenece.grupoid where pertenece.aceptado = 0 and pertenece.userid = ?",[
                         idU
@@ -95,6 +106,9 @@ const iSesion = async(req,res)=>{
                 req.session.alerta = alerta;
                 res.locals.alerta = alerta;
 
+                /**
+                 * Consulta de los grupos aceptados
+                 */
                 const envio = resultado[1];
 
                 res.render("principal", {
@@ -1138,6 +1152,11 @@ async function crearPDF(datos, svgContent){
     })
 }
 
+/**
+ * Función para consultar los grupos que hemos aceptado
+ * @param {String} usuario 
+ * @returns {Array} Array de objetos con los grupos que hemos aceptado
+ */
 async function grupos(usuario){
     const grupos = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ? and pertenece.aceptado = 1 and pertenece.activo = 1",[
         usuario
