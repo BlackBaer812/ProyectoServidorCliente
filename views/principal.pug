@@ -19,8 +19,8 @@ block contenido
                                         a.btn.btn-primary.mx-2(href="/paginaFactura/" + grupo.grupoid) Añadir factura
         .row.p-2
             .col-6.d-flex.justify-content-end
-                button.btn.btn-danger(onclick="anterior()" disabled) Anterior
+                button.btn.btn-danger#anterior(onclick="anterior()" disabled) Anterior
             .col-6
-                button.btn.btn-success(onclick="siguiente()") Siguiente 
+                button.btn.btn-success#siguiente(onclick="siguiente()" disabled=ultima) Siguiente 
             
         

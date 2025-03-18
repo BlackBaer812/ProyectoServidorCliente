@@ -15,6 +15,50 @@ var titActual = null;
 
 var paginas = ["principal","crearGrupo","grupoP","aFactura","pagUsuario","cerrarGrupo","anadirU"];
 
+const pagAnterior = async(req,res) => {
+    let usuario = req.session.usuario;
+    pagActual -= 1;
+
+    let offset = pagActual * 2;
+
+    let resultado = null;
+
+    switch(titActual){
+        case 0:
+            resultado = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ? and pertenece.aceptado = 1 and pertenece.activo = 1 limit 3 offset ?",[
+                usuario,
+                offset
+            ])
+            break;
+    }
+
+    res.json({
+        data: resultado[0].slice(0,2),
+        primeraPagina: pagActual == 0})
+}
+
+const pagSiguiente = async(req,res) => {
+    let usuario = req.session.usuario;
+    pagActual += 1;
+
+    let offset = pagActual * 2;
+
+    let resultado = null;
+
+    switch(titActual){
+        case 0:
+            resultado = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ? and pertenece.aceptado = 1 and pertenece.activo = 1 limit 3 offset ?",[
+                usuario,
+                offset
+            ])
+            break;
+    }
+    res.json({
+        data: resultado[0].slice(0,2),
+        primeraPagina: pagActual == 0})
+
+}
+
 /**
  * Función para redirigir a la página de inicio
  * @param {*} req 
@@ -63,6 +107,8 @@ const iSesion = async(req,res)=>{
     if(req.session.usuario != undefined){
         const envio = await grupos(req.session.usuario);
         
+        let ultima = envio.length < 3;
+
         let idU = req.session.usuario;
 
         delete req.session.grupo;
@@ -83,7 +129,8 @@ const iSesion = async(req,res)=>{
         res.render("principal", {
             titulo: "Pagina de usuario",
             identificado: identificacion(req),
-            grupos: envio,
+            grupos: envio.slice(0,2),
+            ultima,
             idU
         })
     }
@@ -130,10 +177,13 @@ const iSesion = async(req,res)=>{
                  */
                 const envio = resultado[1];
 
+                let ultima = envio.length < 3;
+
                 res.render("principal", {
                     titulo: "Pagina de usuario",
                     identificado: identificacion(req),
-                    grupos: envio,
+                    grupos: envio.slice(0,2),
+                    ultima,
                     idU
                 })
             }
@@ -1292,7 +1342,7 @@ async function crearPDF(datos, svgContent){
  * @returns {Array} Array de objetos con los grupos que hemos aceptado
  */
 async function grupos(usuario){
-    const grupos = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ? and pertenece.aceptado = 1 and pertenece.activo = 1 limit 2",[
+    const grupos = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ? and pertenece.aceptado = 1 and pertenece.activo = 1 limit 3",[
         usuario
     ])
 
@@ -1327,7 +1377,7 @@ async function redirectPagPrincipal(req,res){
     res.render("principal",{
         titulo: "Pagina de usuario",
         identificado: identificacion(req),
-        grupos: envio,
+        grupos: envio.slice(0,2),
         idU
     })
 }
@@ -1462,5 +1512,7 @@ export{
     borrar,
     aceptarInvitacion,
     rechazarInvitacion,
-    cerrarGrupo
+    cerrarGrupo,
+    pagSiguiente,
+    pagAnterior
 }

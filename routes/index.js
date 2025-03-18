@@ -1,5 +1,5 @@
 import express from 'express';
-import { cerrarSesion, pagCrearGrupo, iSesion, paginaInicio, paginaISesion, paginaRegistro, recuperacion, registro, verifica, volverPPrincial, crearGrupo, accesoGrupo,crearFactura, paginaFactura, borrar, paginaFacturaParams, paginaAnadir, anadirParticipante, paginaUsuario, aceptarInvitacion, rechazarInvitacion, paginaCerrar, cerrarGrupo } from '../controllers/paginaControllers.js';
+import { cerrarSesion, pagCrearGrupo, iSesion, paginaInicio, paginaISesion, paginaRegistro, recuperacion, registro, verifica, volverPPrincial, crearGrupo, accesoGrupo,crearFactura, paginaFactura, borrar, paginaFacturaParams, paginaAnadir, anadirParticipante, paginaUsuario, aceptarInvitacion, rechazarInvitacion, paginaCerrar, cerrarGrupo, pagSiguiente, pagAnterior } from '../controllers/paginaControllers.js';
 
 const router = express.Router();
 
@@ -50,6 +50,8 @@ router.get("/cerrarGrupo",paginaCerrar)
 
 router.post("/cerrarGrupo",cerrarGrupo)
 
-router.get("/enviarPDF",)
+router.get("/siguientePag",pagSiguiente)
+
+router.get("/anteriorPag",pagAnterior)
 
 export default router;
