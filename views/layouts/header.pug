@@ -9,7 +9,7 @@ header.container-fluid.sticky-top
                     path(d='M84 144 Q129 184, 174 144' stroke='#FA5A0A' stroke-width='10' fill='none')
                     text(x='129' y='228' font-size='36' font-family='Arial' fill='#FA5A0A' text-anchor='middle') Shared Control
 
-        .col-md-3.d-flex.justify-content-center.align-items-center.gap-2
+        .col-md-3.d-flex.justify-content-center.align-items-center.gap-2.mt-1
             include ./botones/botones.pug
         .col-md-4.d-flex.justify-content-center.align-items-center
             h3 #{titulo}
@@ -29,5 +29,14 @@ header.container-fluid.sticky-top
                     
 
             else
-                a.btn.btn-primary(href="/iSesion") Inicio de sesión 
-                a.btn.btn-primary(href="/registro") Registro
+                nav.navbar.navbar-expand-lg.navbar-light
+                    .container-fluid
+                        // Botón del menú hamburguesa alineado a la derecha
+                        button.navbar-toggler.ms-auto(type="button", data-bs-toggle="collapse", data-bs-target="#navbarNav", aria-controls="navbarNav", aria-expanded="false", aria-label="Toggle navigation")
+                            span.navbar-toggler-icon
+                        
+                        // Contenido del menú
+                        #navbarNav.collapse.navbar-collapse
+                            .navbar-nav.ms-auto.d-lg-flex.d-grid.gap-2.p-3
+                                a.btn.btn-primary.m-ms-2(href="/iSesion") Inicio de sesión
+                                a.btn.btn-primary.m-ms-2(href="/registro") Registro

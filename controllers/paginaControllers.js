@@ -23,17 +23,22 @@ const pagAnterior = async(req,res) => {
 
     let resultado = null;
 
+    let salida = undefined;
+
     switch(titActual){
         case 0:
             resultado = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ? and pertenece.aceptado = 1 and pertenece.activo = 1 limit 3 offset ?",[
                 usuario,
                 offset
             ])
+
+            salida = resultado[0].slice(0,2)
+
             break;
     }
 
     res.json({
-        data: resultado[0].slice(0,2),
+        data: salida,
         primeraPagina: pagActual == 0})
 }
 
@@ -45,18 +50,86 @@ const pagSiguiente = async(req,res) => {
 
     let resultado = null;
 
+    let salida = undefined;
+
     switch(titActual){
         case 0:
             resultado = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ? and pertenece.aceptado = 1 and pertenece.activo = 1 limit 3 offset ?",[
                 usuario,
                 offset
             ])
+
+            salida = resultado[0].slice(0,2)
+
             break;
     }
     res.json({
-        data: resultado[0].slice(0,2),
+        data: salida,
         primeraPagina: pagActual == 0})
 
+}
+
+const pagPrimera = async(req,res) =>{
+    let usuario = req.session.usuario;
+    pagActual = 0
+
+    let offset = pagActual * 2;
+
+    let resultado = null;
+
+    let salida = undefined;
+
+    switch(titActual){
+        case 0:
+            resultado = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ? and pertenece.aceptado = 1 and pertenece.activo = 1 limit 3 offset ?",[
+                usuario,
+                offset
+            ])
+
+            salida = resultado[0].slice(0,2);
+
+            break;
+    }
+
+    res.json({
+        data: salida,
+        primeraPagina: pagActual == 0})
+}
+
+const pagUltima = async(req,res) =>{
+    let usuario = req.session.usuario;
+    pagActual = 0
+
+    let resultado = null;
+
+    let salida = undefined;
+
+    switch(titActual){
+        case 0:
+            resultado = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ? and pertenece.aceptado = 1 and pertenece.activo = 1 ORDER BY grupo.grupoid DESC",[
+                usuario
+            ])
+            pagActual = resultado[0].length;
+
+            console.log(pagActual);
+
+            if(pagActual%2 == 0){
+                salida = resultado[0].slice(0,2)
+            }
+            else{
+                salida = resultado[0].slice(0,1)
+            }
+
+            pagActual = (pagActual/2).toFixed(0) - 1; 
+            
+            console.log(pagActual);
+
+            break;
+    }
+    res.json({
+        data: salida,
+        primeraPagina: pagActual == 0})
+    
 }
 
 /**
@@ -1514,5 +1587,7 @@ export{
     rechazarInvitacion,
     cerrarGrupo,
     pagSiguiente,
-    pagAnterior
+    pagAnterior,
+    pagPrimera,
+    pagUltima
 }
