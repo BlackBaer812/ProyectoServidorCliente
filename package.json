@@ -11,8 +11,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon index.js",
-    "start": "index.js"
+    "start": "node index.js"
   },
   "dependencies": {
     "bootstrap": "^5.1.3",
