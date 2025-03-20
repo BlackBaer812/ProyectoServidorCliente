@@ -387,7 +387,7 @@ const registro = async (req,res)=>{
                 //     'Correo: ' + entrada.email + '\n' +
                 //     'Teléfono: ' + entrada.telefono + '\n'
                 // ,
-                html: `<a href="http://127.0.0.1:4000/verificacion/${rows[0].salida}/${entrada.user}"> Link de activación </a>`
+                html: `<a href="https://proyectoservidorcliente.onrender.com/verificacion/${rows[0].salida}/${entrada.user}"> Link de activación </a>`
             };
 
             await transporter.sendMail(mailOptions);
