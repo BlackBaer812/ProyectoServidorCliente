@@ -410,6 +410,11 @@ const registro = async (req,res)=>{
                 mensaje: true
             })
         }
+
+        res.render("registro", {
+            titulo: "titulo",
+            identificado: identificacion(req)
+        });
     }
 }
 
