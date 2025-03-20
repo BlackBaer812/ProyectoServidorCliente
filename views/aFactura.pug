@@ -11,24 +11,24 @@ block contenido
                                 p.text-dark.fw-bold #{texto}
                     .row.my-1.d-flex.gap-1
                         .col-md-6.col-12
-                            select#tipo.form-select(aria-label='Selector de tipo' name="tipo")
+                            select#tipo.form-select(aria-label='Selector de tipo' name="tipo" required)
                                 option(selected='') Selecciones su tipo
                                 for tipo in tipos 
                                     option(value = tipo.idtipo selected=tipo.idtipo==tip ) #{tipo.nombre.charAt(0).toUpperCase()+tipo.nombre.slice(1)}
                         .col-md.col-12
                             label.visually-hidden(for='fecha') Fecha
-                            input#fecha.form-control(type='date' name="fecha" placeholder='fecha' value=fech)
+                            input#fecha.form-control(type='date' name="fecha" placeholder='fecha' value=fech required)
                     .row.my-1.d-flex.gap-1
                         .col-md-6.col-12
                             label.visually-hidden(for='valor') Precio
-                            input#precio.form-control(type='number' name="valor" placeholder="Precio" value=val step="0.01")
+                            input#precio.form-control(type='number' name="valor" placeholder="Precio" value=val step="0.01" required)
                         .col-md.col-12
                             label.visually-hidden(for='nombre') Nombre
-                            input#nombre.form-control(type='text' name="nombre" placeholder='Nombre del Producto' value=nom)
+                            input#nombre.form-control(type='text' name="nombre" placeholder='Nombre del Producto' value=nom required)
                     .row.my-1.d-flex.gap-1.justify-content-center
                         .col-md-12.col-12 
                             label.visually-hidden(for='comentario') Comentario
-                            textarea#comentario.form-control(name="comentario" placeholder='Su comentario aquí' value=com)
+                            textarea#comentario.form-control(name="comentario" placeholder='Su comentario aquí' value=com required)
                     .col-12.d-flex.justify-content-center.align-items-center.mt-2
                             button.btn.btn-primary(type='submit') Registrarse
                 
