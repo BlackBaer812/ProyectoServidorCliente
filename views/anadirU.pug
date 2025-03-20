@@ -1,25 +1,25 @@
 extends layouts/head
 block contenido
-    main.container.d-flex.justify-content-center.p-2(style="min-height: 81.7vh")
+    main.container.d-flex.justify-content-center.p-2.principal
             .row.d-flex.align-items-center.justify-content-center(style="min-height:100%; width: 100%")
                 .col-12.d-flex.flex-column.ancho.alto
                     .row.d-flex.ancho
                         .col-12.d-flex.flex-column.ancho
                             form.row(action="/anadirUser" method="post")
                                 h3.text-center Añadir un usuario
-                                .col-3
+                                .col-6.col-lg-3
                                     label.visually-hidden(for='usuario') Usuario
                                         i.bi.bi-search
                                     input#usuario.form-control(type='text' name="usuario" placeholder="Usuario" required)
-                                .col-3
+                                .col-6.col-lg-3
                                     label.visually-hidden(for='telefono') Telefono
                                         i.bi.bi-search
                                     input#telefono.form-control(type='number' name="telefono" placeholder="Telefono" min=111111111 max=999999999 oninput="if(this.value.length > 9) this.value = this.value.slice(0,9);")
-                                .col-3
+                                .col-12.col-lg-3.my-1
                                     label.visually-hidden(for='email') E-mail
                                         i.bi.bi-search
                                     input#email.form-control(type='email' name="email" placeholder="E-mail")
-                                .col-3.d-flex.aling-items-center.justify-content-evenly
+                                .col.col-lg-3.d-flex.aling-items-center.justify-content-evenly.my-1
                                     .col-6
                                         label.visually.me-2(for='admin') Administrador?
                                         input#admin.form-check-input(type='checkbox' name="admin" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="bottom" data-bs-content="Administrador?")
@@ -34,16 +34,16 @@ block contenido
                                 .col-6.bg-danger.p-3
                                     .text-center #{mensaje}         
 
-                    .row.mt-4
-                        .col-12
+                    .row.mt-4.d-flex.justify-content-center
+                        .col-8.col-lg-12
                             if datos.length > 0
                                 h2.text-center Participantes actuales
-                                .row
-                                    .col-4 Nombre
-                                    .col-4 Telefono
-                                    .col-4 E-mail
+                                .row.m-1
+                                    .col-6.col-lg-4.text-end Nombre
+                                    .col-6.col-lg-4 Telefono
+                                    .col-12.col-lg-4.text-center E-mail
                                 for dato in datos
                                     .row.border.m-1
-                                        .col-4 #{dato.nombre.charAt(0).toUpperCase() + dato.nombre.slice(1)}
-                                        .col-4 #{dato.telefono}
-                                        .col-4 #{dato.email}
+                                        .col-6.col-lg-4.text-end #{dato.nombre.charAt(0).toUpperCase() + dato.nombre.slice(1)}
+                                        .col-6.col-lg-4 #{dato.telefono}
+                                        p.col-12.col-lg-4.text-center.textoEsp #{dato.email}

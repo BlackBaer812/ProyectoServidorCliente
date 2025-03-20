@@ -33,3 +33,30 @@ footer{
 #usuarioEli:hover {
     cursor:default;
 }
+
+.principal{
+    min-height: 81.7vh
+}
+
+.crearGrupo{
+    min-height: 70.6vh
+}
+
+.textoEsp{
+    margin: 0;
+}
+
+@media (max-width: 767.98px) {
+    .principal {
+        min-height: 58.8vh; /* O el valor que desees */
+    }
+    .crearGrupo{
+        min-width: auto;
+    }
+}
+
+@media (max-width: 576px){
+    .textoEsp{
+        font-size: small;
+    }
+}

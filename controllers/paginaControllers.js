@@ -111,8 +111,6 @@ const pagUltima = async(req,res) =>{
             ])
             pagActual = resultado[0].length;
 
-            console.log(pagActual);
-
             if(pagActual%2 == 0){
                 salida = resultado[0].slice(0,2)
             }
@@ -121,8 +119,6 @@ const pagUltima = async(req,res) =>{
             }
 
             pagActual = (pagActual/2).toFixed(0) - 1; 
-            
-            console.log(pagActual);
 
             break;
     }
@@ -1235,7 +1231,6 @@ const cerrarGrupo = async(req,res) => {
                             let continua = true;
                             for(let j = 0; j<posicion.length && continua; j++){
                                 if(posicion[j].posicion > 0){
-                                    console.log(posicion[i].posicion,posicion[j].posicion)
                                     let cantidad = posicion[i].posicion + posicion[j].posicion;
                                     
                                     debe.push({

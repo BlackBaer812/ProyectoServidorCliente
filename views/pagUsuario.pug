@@ -8,8 +8,8 @@ block contenido
             .col.border
                 for dato in datos
                     .row.d-flex.ancho.align-items-center.py-2
-                        .col-6
+                        .col-12.col-md-6
                             p.text-center #{dato.nombre}
-                        .col-2.d-flex.gap-2
-                            a.btn.btn-success(href="/aceptar/" + dato.grupoid) Aceptar
-                            a.btn.btn-danger(href="/rechazar/" + dato.grupoid) Rechazar
+                        .col-12.col-md-6.d-flex.justify-content-center
+                            a.btn.btn-success.mx-1(href="/aceptar/" + dato.grupoid) Aceptar
+                            a.btn.btn-danger.mx-1(href="/rechazar/" + dato.grupoid) Rechazar

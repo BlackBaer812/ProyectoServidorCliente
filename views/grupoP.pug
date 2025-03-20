@@ -1,6 +1,6 @@
 extends layouts/head
 block contenido
-    main.container.d-flex.justify-content-center.p-2(style="min-height: 81.7vh")
+    main.container.d-flex.justify-content-center.p-2.principal
         .row.d-flex.ancho
             .col.d-flex.gap-1.flex-column.ancho
                 .row.border.ancho.p-3
@@ -38,26 +38,26 @@ block contenido
                                         .row.m-1.d-flex.ancho
                                             .col-12.border
                                                 .row.p-1.overflow-y-auto
-                                                    .col-3.text-center.p-1
+                                                    .col-6.col-md-3.text-center.p-1
                                                         |#{dato.nombre.charAt(0).toUpperCase() + dato.nombre.slice(1)}
-                                                    .col-1.p-1
+                                                    .col-6.col-md-1.p-1
                                                         |#{dato.valor} €
-                                                    .col-5.p-1 
+                                                    .col-6.col-md-5.p-1 
                                                         |#{dato.Comentario}
-                                                    .col-2.p-1 
+                                                    .col-3.col-md-2.p-1 
                                                         .text-capitalize #{dato.Tipo}
-                                                    .col-1.p-1
+                                                    .col-3.col-md-1.p-1
                                                         a.btn.btn-danger(href="/borrar/" + dato.idCompra data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="right" data-bs-content="Borrar articulo: "+dato.nombre) <!-- Borrar articulo de la lista -->
                                                             i.bi.bi-trash3
                             .col-md-3.col-12.d-flex.flex-column.align-items-center.justify-content-start.alto
                                 h3 Posición actual
                                 if datosP.length > 0
                                     for dato in datosP
-                                        .row.m-1.d-flex.ancho
-                                            .col-12.border
+                                        .row.m-1.d-flex.justify-content-center.ancho
+                                            .col-6.col-md-12.border
                                                 .row.p-1.overflow-y-auto
                                                     .col-6.p-1
-                                                        p.text-capitalize#pActual #{dato.nombre}
+                                                        p.text-capitalize#pActual.text-end #{dato.nombre}
                                                         
                                                     .col-6.p-1
                                                         p#pActual #{(dato.posicion).toFixed(2)}€
