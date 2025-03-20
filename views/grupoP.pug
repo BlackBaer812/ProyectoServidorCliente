@@ -9,12 +9,12 @@ block contenido
                         h3 Acciones
                         .row
                             .col-12.d-flex.gap-4
-                                a.btn.btn-success(href="/paginaFactura" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="bottom" data-bs-content="Añadir factura") <!-- Para añadir un ticket -->
+                                a.btn.btn-success(href="/paginaFactura" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="bottom" data-bs-content="Añadir factura" aria-label="Añadir factura") <!-- Para añadir un ticket -->
                                     i.bi.bi-receipt-cutoff.fs-2
                                 if(admin == true)
-                                    a.btn.btn-success(href="/anadirUser" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="bottom" data-bs-content="Añadir participante") <!-- Para añadir una persona al grupo -->
+                                    a.btn.btn-success(href="/anadirUser" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="bottom" data-bs-content="Añadir participante" aria-label="Añadir participante") <!-- Para añadir una persona al grupo -->
                                         i.bi.bi-person-add.fs-2
-                                    a.btn.btn-danger(href="/cerrarGrupo" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="bottom" data-bs-content="Cerrar grupo") <!-- Para cerrar el grupo -->
+                                    a.btn.btn-danger(href="/cerrarGrupo" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="bottom" data-bs-content="Cerrar grupo" aria-label="Cerrar grupo") <!-- Para cerrar el grupo -->
                                         i.bi.bi-x-circle-fill.fs-2
                                 
                                 

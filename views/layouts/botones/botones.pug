@@ -2,19 +2,19 @@ if identificado
     if(titulo != "Pagina de usuario")
         form(action="/iSesion" method="post") 
             button.btn.btn-warning(type="submit")
-                i.bi.bi-house.fs-2(data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="bottom" data-bs-content="Pagina de inicio")
+                i.bi.bi-house.fs-2(data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="bottom" data-bs-content="Pagina de inicio" aria-label="Página de inicio")
 
     if(titulo == "Crear factura" || titulo == "Añadir usuario" || titulo == "Cerrar grupo")
         a.btn.btn-warning(href="/accesoGrupo/" + idG)
-            i.bi.bi-arrow-left-circle.fs-2(data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="bottom" data-bs-content="Pagina del grupo")
+            i.bi.bi-arrow-left-circle.fs-2(data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="bottom" data-bs-content="Pagina del grupo" aria-label="Volver a la página del grupo")
     
     if(idG != undefined && !titulo.includes("Pagina del grupo"))
-        a.btn.btn-success(href="/paginaFactura" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="bottom" data-bs-content="Añadir factura") 
+        a.btn.btn-success(href="/paginaFactura" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="bottom" data-bs-content="Añadir factura" aria-label="Añadir factura") 
             i.bi.bi-receipt-cutoff.fs-2
         if(admin == true)
-            a.btn.btn-success(href="/anadirUser" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="bottom" data-bs-content="Añadir participante") <!-- Para añadir una persona al grupo -->
+            a.btn.btn-success(href="/anadirUser" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="bottom" data-bs-content="Añadir participante" aria-label="Añadir participante") <!-- Para añadir una persona al grupo -->
                 i.bi.bi-person-add.fs-2
-            a.btn.btn-danger(href="/cerrarGrupo" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="bottom" data-bs-content="Cerrar grupo") <!-- Para cerrar el grupo -->
+            a.btn.btn-danger(href="/cerrarGrupo" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="bottom" data-bs-content="Cerrar grupo" aria-label="Cerrar grupo") <!-- Para cerrar el grupo -->
                 i.bi.bi-x-circle-fill.fs-2
 else 
     
