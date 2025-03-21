@@ -23,7 +23,7 @@ function siguiente(){
         datos.forEach(element => {
             impresion += `
             <div class="row">
-                <div class="col-12 col border my-1">
+                <div class="col col-12 border my-1">
                     <div class="row p-2 fila">
                         <div class="col-4">
                             <h3>${element.nombre}</h3>
@@ -40,7 +40,7 @@ function siguiente(){
 
         objetivo.innerHTML = impresion;
 
-        if(data.data.length < 2){
+        if(data.data.length <= 2){
             document.getElementById("siguiente").disabled=true;
             document.getElementById("ultima").disabled=true;
         }
@@ -72,7 +72,7 @@ function anterior(){
         datos.forEach(element => {
             impresion += `
             <div class="row">
-                <div class="col-12 col border my-1">
+                <div class="col col-12 border my-1">
                     <div class="row p-2 fila">
                         <div class="col-4">
                             <h3>${element.nombre}</h3>
@@ -103,7 +103,6 @@ function anterior(){
 }
 
 function primera(){
-    console.log("primera")
 
     fetch('/primeraPag', {
         method: 'GET'
@@ -122,7 +121,7 @@ function primera(){
         datos.forEach(element => {
             impresion += `
             <div class="row">
-                <div class="col-12 col border my-1">
+                <div class="col col-12 border my-1">
                     <div class="row p-2 fila">
                         <div class="col-4">
                             <h3>${element.nombre}</h3>
@@ -153,7 +152,6 @@ function primera(){
 }
 
 function ultima(){
-    console.log("ultima")
 
     fetch('/ultimaPag', {
         method: 'GET'
@@ -172,7 +170,7 @@ function ultima(){
         datos.forEach(element => {
             impresion += `
             <div class="row">
-                <div class="col-12 col border my-1">
+                <div class="col col-12 border my-1">
                     <div class="row p-2 fila">
                         <div class="col-4">
                             <h3>${element.nombre}</h3>
@@ -189,7 +187,7 @@ function ultima(){
 
         objetivo.innerHTML = impresion;
 
-        if(data.data.length < 2){
+        if(data.data.length <= 2){
             document.getElementById("siguiente").disabled=true;
             document.getElementById("ultima").disabled=true;
         }
