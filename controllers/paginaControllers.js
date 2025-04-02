@@ -1087,17 +1087,18 @@ const rechazarInvitacion = async(req,res) =>{
         let idU = req.session.usuario;
 
         try{
-            const datos = await Promise.all([
-                db.execute("CALL procAcepRech(?,?,0)",[
-                    idG,
-                    idU
-                ]),
-                db.query("SELECT grupo.nombre, grupo.grupoid FROM grupo inner join pertenece on grupo.grupoid = pertenece.grupoid where pertenece.aceptado = 0 and pertenece.userid = ?",[
-                    idU
-                ])
+            await db.execute("CALL procAcepRech(?,?,1)",[
+                idG,
+                idU
             ])
 
-            if(datos[1][0].length == 0){
+            const datos = await db.query("SELECT grupo.nombre, grupo.grupoid FROM grupo inner join pertenece on grupo.grupoid = pertenece.grupoid where pertenece.aceptado = 0 and pertenece.userid = ?",[
+                idU
+            ])
+
+            console.log(datos[0])
+
+            if(datos[0].length == 0){
                 res.locals.alerta = "black"
                 req.session.alerta = "black";
             }
@@ -1106,7 +1107,7 @@ const rechazarInvitacion = async(req,res) =>{
                 titulo:"Opciones de usuario",
                 identificado: identificacion(req),
                 idU: req.session.usuario,
-                datos: datos[1][0]
+                datos: datos[0]
             })
         }
         catch(err){
