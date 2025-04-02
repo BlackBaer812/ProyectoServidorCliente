@@ -199,6 +199,7 @@ const iSesion = async(req,res)=>{
             titulo: "Pagina de usuario",
             identificado: identificacion(req),
             grupos: envio.slice(0,2),
+            nReg: envio.length,
             ultima,
             idU
         })
@@ -252,6 +253,7 @@ const iSesion = async(req,res)=>{
                     titulo: "Pagina de usuario",
                     identificado: identificacion(req),
                     grupos: envio.slice(0,2),
+                    nReg: envio.length,
                     ultima,
                     idU
                 })
@@ -464,7 +466,8 @@ const volverPPrincial = async(req,res) =>{
         res.render("principal",{
             titulo: "Pagina de usuario",
             identificado: identificacion(req),
-            grupos: envio,
+            grupos: envio.slice(0,2),
+            nReg: envio.length,
             idU
         })
     }
@@ -498,7 +501,8 @@ const crearGrupo = async(req,res) =>{
             res.render("principal",{
                 titulo: "Pagina de usuario",
                 identificado: identificacion(req),
-                grupos: envio,
+                grupos: envio.slice(0,2),
+                nReg: envio.length,
                 idU: user
             })
         }
@@ -1029,17 +1033,19 @@ const aceptarInvitacion = async(req,res) =>{
         let idU = req.session.usuario;
 
         try{
-            const datos = await Promise.all([
-                db.execute("CALL procAcepRech(?,?,1)",[
-                    idG,
-                    idU
-                ]),
-                db.query("SELECT grupo.nombre, grupo.grupoid FROM grupo inner join pertenece on grupo.grupoid = pertenece.grupoid where pertenece.aceptado = 0 and pertenece.userid = ?",[
-                    idU
-                ])
+
+            await db.execute("CALL procAcepRech(?,?,1)",[
+                idG,
+                idU
             ])
 
-            if(datos[1][0].length == 0){
+            const datos = await db.query("SELECT grupo.nombre, grupo.grupoid FROM grupo inner join pertenece on grupo.grupoid = pertenece.grupoid where pertenece.aceptado = 0 and pertenece.userid = ?",[
+                idU
+            ])
+
+            console.log(datos[0])
+
+            if(datos[0].length == 0){
                 res.locals.alerta = "black"
                 req.session.alerta = "black";
             }
@@ -1048,7 +1054,7 @@ const aceptarInvitacion = async(req,res) =>{
                 titulo:"Opciones de usuario",
                 identificado: identificacion(req),
                 idU: req.session.usuario,
-                datos: datos[1][0]
+                datos: datos[0]
             })
         }
         catch(err){
@@ -1451,6 +1457,7 @@ async function redirectPagPrincipal(req,res){
         titulo: "Pagina de usuario",
         identificado: identificacion(req),
         grupos: envio.slice(0,2),
+        nReg: envio.length,
         idU
     })
 }
