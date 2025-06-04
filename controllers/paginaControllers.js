@@ -352,8 +352,8 @@ const registro = async (req,res)=>{
         const [rows] = await db.execute("SELECT @salida AS salida, @existe AS existe");
 
         /*Comprobamos si existe el elemento que introducimos en la base de datos:
-            1: el elemento existe -> ponemos falso para ir al if
-            2: el elemento no existe -> ponemos true para ir al else
+            1: el elemento existe -> ponemos true para ir al if
+            2: el elemento no existe -> ponemos false para ir al else
         */
         const existe = rows[0].existe == 1? true:false; 
         
@@ -1358,9 +1358,140 @@ const cerrarGrupo = async(req,res) => {
     }
 }
 
-const recuperacion = async(req,res) => {
-
+const pagRecuperacion = async(req,res) => {
+    res.render("recuperarCuenta",{
+        titulo:"Recuperación",
+        identificado: identificacion(req)
+    })
 }
+
+const recuperacion = async(req,res) => {
+    const emailReq = req.body.email;
+
+    const existe = await db.execute("SELECT usuario FROM usuarios WHERE email = ?",[
+        emailReq
+    ]);
+
+    console.log(existe[0][0])
+
+    if(existe[0][0] != undefined){
+
+        let aleatorio = generarAleatorio();
+
+        const persona = await db.execute("CALL recuperacion(?,?)",[
+            existe[0][0].usuario,
+            aleatorio
+        ])
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',  // Usando Gmail como servicio de correo
+            auth: {
+                user: 'marcosruizclemente@gmail.com', // Reemplaza con tu correo de Gmail
+                pass:  process.env.CONTRA_EMAIL // Reemplaza con tu contraseña o una contraseña de aplicación
+            }
+        });
+
+        const mailOptions = {
+            from: `marcosruizclemente@gmail.com`,      // Remitente
+            to: emailReq,         // Destinatario
+            subject: `Recuperación de contraseña ` + existe[0][0].usuario,  // Asunto
+            // text:
+            //     'Nombre: ' + entrada.user + '\n' +
+            //     'Correo: ' + entrada.email + '\n' +
+            //     'Teléfono: ' + entrada.telefono + '\n'
+            // ,
+            html: `<a href="http://localhost:4000/verificacionRecuperacion/${aleatorio}/${existe[0][0].usuario}"> Link de activación </a>`
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        res.render("envioEmail.pug",{
+            titulo: "Envio de email",
+            identificado: identificacion(req)
+        })
+    }
+    else{
+        res.render("recuperarCuenta",{
+            titulo:"Recuperación",
+            identificado: identificacion(req)
+        })
+    }
+}
+
+const pagVerificacionRecuperacion = async (req,res) =>{
+    const {verificacion,usuario} = req.params
+
+    try{
+        
+        const consulta = await db.execute("SELECT usuario FROM usuarios WHERE usuario = ? and codigorec = ?",[
+            usuario,
+            verificacion
+        ])
+
+        req.session.usuario = usuario;
+        req.session.verificacion = verificacion;
+
+        if(consulta[0][0].usuario != undefined){
+            res.render("modificarPass",{
+                titulo: "Recuperación de contraseña",
+            })
+        }
+        else{
+            res.render("indice",{
+                titulo:"Inicio",
+                identificado: identificacion(req)
+            })
+        }
+        
+    }
+    catch(err){
+        console.error(err)
+    }
+}
+
+const verificacionRecuperacion = async (req,res) =>{
+    const password = req.body.password;
+    const comprobante = req.body.password2;
+
+    console.log(req.session)
+
+    if(password == comprobante){
+        try{
+            await db.execute("CALL modificacionPass(?,?,?)",[
+                password,
+                req.session.usuario,
+                req.session.verificacion
+            ])
+
+            delete req.session.usuario;
+            delete req.session.verificacion;
+
+            res.render("iSesion",{
+                titulo: "Inicio de sesión",
+                identificado: identificacion(req),
+            })
+        }
+        catch(err){
+
+            delete req.session.usuario;
+            delete req.session.verificacion;
+
+            console.error(err)
+            res.render("indice",{
+                titulo:"Inicio",
+                identificado: identificacion(req)
+            })
+        }
+
+    }
+    else{
+        res.render("modificarPass",{
+            titulo: "Recuperación de contraseña",
+            password,
+            comprobante
+        })
+    }
+} 
 
 /**
  * Función para crear la imagen de un svg
@@ -1589,6 +1720,7 @@ export{
     accesoGrupo,
     crearFactura,
     anadirParticipante,
+    pagRecuperacion,
     recuperacion,
     borrar,
     aceptarInvitacion,
@@ -1597,5 +1729,7 @@ export{
     pagSiguiente,
     pagAnterior,
     pagPrimera,
-    pagUltima
+    pagUltima,
+    pagVerificacionRecuperacion,
+    verificacionRecuperacion
 }
