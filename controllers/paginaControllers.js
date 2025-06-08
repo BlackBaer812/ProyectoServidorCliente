@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import PDFDocument from "pdfkit";
 import sharp from 'sharp';
 import pdfTable from "pdfkit-table";
+import bcrypt from "bcrypt";
 
 dotenv.config()
 
@@ -13,13 +14,21 @@ dotenv.config()
 var pagActual = null;
 var titActual = null;
 
-var paginas = ["principal","crearGrupo","grupoP","aFactura","pagUsuario","cerrarGrupo","anadirU"];
+var pagActual = 0;
 
+const elementosPorPagina = 6;
+
+/**
+ * Función para el desplazamiento por las páginas, disminuye el número de página actual
+ * Se usa para mostrar los grupos a los que pertenece un usuario
+ * @param {*} req 
+ * @param {*} res 
+ */
 const pagAnterior = async(req,res) => {
     let usuario = req.session.usuario;
     pagActual -= 1;
 
-    let offset = pagActual * 2;
+    let offset = pagActual * elementosPorPagina;
 
     let resultado = null;
 
@@ -27,12 +36,13 @@ const pagAnterior = async(req,res) => {
 
     switch(titActual){
         case 0:
-            resultado = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ? and pertenece.aceptado = 1 and pertenece.activo = 1 limit 3 offset ?",[
+            resultado = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ? and pertenece.aceptado = 1 and pertenece.activo = 1 limit ? offset ?",[
                 usuario,
+                elementosPorPagina+1,
                 offset
             ])
 
-            salida = resultado[0].slice(0,2)
+            salida = resultado[0].slice(0,elementosPorPagina)
 
             break;
     }
@@ -42,38 +52,57 @@ const pagAnterior = async(req,res) => {
         primeraPagina: pagActual == 0})
 }
 
+
+/**
+ * Función para el desplazamiento por las páginas, aumenta el número de página actual
+ * Se usa para mostrar los grupos a los que pertenece un usuario
+ * @param {*} req 
+ * @param {*} res 
+ */
 const pagSiguiente = async(req,res) => {
     let usuario = req.session.usuario;
     pagActual += 1;
 
-    let offset = pagActual * 2;
+    let offset = pagActual * elementosPorPagina;
 
     let resultado = null;
 
     let salida = undefined;
 
+    let hayMasPaginas = false;
+
     switch(titActual){
         case 0:
-            resultado = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ? and pertenece.aceptado = 1 and pertenece.activo = 1 limit 3 offset ?",[
+            resultado = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ? and pertenece.aceptado = 1 and pertenece.activo = 1 limit ? offset ?",[
                 usuario,
+                elementosPorPagina+1,
                 offset
             ])
 
-            salida = resultado[0].slice(0,2)
+            hayMasPaginas = resultado[0].length > elementosPorPagina;
+            salida = resultado[0].slice(0, elementosPorPagina);
 
             break;
     }
     res.json({
         data: salida,
-        primeraPagina: pagActual == 0})
+        primeraPagina: pagActual == 0,
+        ultimaPagina: !hayMasPaginas
+    })
 
 }
 
+/**
+    * Función para el desplazamiento por las páginas, se coloca en la primera página
+ * Se usa para mostrar los grupos a los que pertenece un usuario
+ * @param {*} req 
+ * @param {*} res 
+ */
 const pagPrimera = async(req,res) =>{
     let usuario = req.session.usuario;
     pagActual = 0
 
-    let offset = pagActual * 2;
+    let offset = pagActual * elementosPorPagina;
 
     let resultado = null;
 
@@ -81,21 +110,29 @@ const pagPrimera = async(req,res) =>{
 
     switch(titActual){
         case 0:
-            resultado = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ? and pertenece.aceptado = 1 and pertenece.activo = 1 limit 3 offset ?",[
+            resultado = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ? and pertenece.aceptado = 1 and pertenece.activo = 1 limit ? offset ?",[
                 usuario,
+                elementosPorPagina+1,
                 offset
             ])
 
-            salida = resultado[0].slice(0,2);
+            salida = resultado[0].slice(0,elementosPorPagina)
 
             break;
     }
 
     res.json({
         data: salida,
-        primeraPagina: pagActual == 0})
+        primeraPagina: true})
 }
 
+
+/**
+ * Función para el desplazamiento por las páginas, se coloca en la última página
+ * Se usa para mostrar los grupos a los que pertenece un usuario
+ * @param {*} req 
+ * @param {*} res 
+ */
 const pagUltima = async(req,res) =>{
     let usuario = req.session.usuario;
     pagActual = 0
@@ -111,20 +148,21 @@ const pagUltima = async(req,res) =>{
             ])
             pagActual = resultado[0].length;
 
-            if(pagActual%2 == 0){
-                salida = resultado[0].slice(0,2)
-            }
-            else{
-                salida = resultado[0].slice(0,1)
+            if (pagActual % elementosPorPagina == 0) {
+                salida = resultado[0].slice(0, elementosPorPagina);
+            } else {
+                salida = resultado[0].slice(0, resultado[0].length % elementosPorPagina);
             }
 
-            pagActual = (pagActual/2).toFixed(0) - 1; 
+            pagActual = Math.floor(resultado[0].length / elementosPorPagina);
 
             break;
     }
     res.json({
         data: salida,
-        primeraPagina: pagActual == 0})
+        primeraPagina: pagActual == 0,
+        ultimaPagina: true
+    })
     
 }
 
@@ -198,7 +236,7 @@ const iSesion = async(req,res)=>{
         res.render("principal", {
             titulo: "Pagina de usuario",
             identificado: identificacion(req),
-            grupos: envio.slice(0,2),
+            grupos: envio.slice(0,elementosPorPagina),
             nReg: envio.length,
             ultima,
             idU
@@ -212,16 +250,14 @@ const iSesion = async(req,res)=>{
     }
     else {
         try {
-            await db.execute("CALL iSesion(?,?,@salida)", [
-                req.body.usuario,
-                req.body.password
-            ])
 
-            const [rows] = await db.execute("SELECT @salida AS salida");
+            const [password] = await db.query("SELECT password FROM usuarios WHERE usuario = ?", [
+                req.body.usuario
+            ]);
 
-            const autentificado = rows[0].salida == 1 ? true : false;
+            const passwordCorrecta = await bcrypt.compare(req.body.password, password[0].password);
 
-            if (autentificado) {
+            if (passwordCorrecta) {
 
                 req.session.usuario = req.body.usuario;
 
@@ -252,7 +288,7 @@ const iSesion = async(req,res)=>{
                 res.render("principal", {
                     titulo: "Pagina de usuario",
                     identificado: identificacion(req),
-                    grupos: envio.slice(0,2),
+                    grupos: envio.slice(0,elementosPorPagina),
                     nReg: envio.length,
                     ultima,
                     idU
@@ -330,7 +366,7 @@ const registro = async (req,res)=>{
 
     let entrada = {
         user: req.body.usuario,
-        password: req.body.password,
+        password: await hashPassword(req.body.password),
         email: req.body.email,
         nombre: req.body.nombre,
         telefono: req.body.telefono,
@@ -389,7 +425,7 @@ const registro = async (req,res)=>{
                 //     'Correo: ' + entrada.email + '\n' +
                 //     'Teléfono: ' + entrada.telefono + '\n'
                 // ,
-                html: `<a href="https://proyectoservidorcliente.onrender.com/verificacion/${rows[0].salida}/${entrada.user}"> Link de activación </a>`
+                html: `<a href="https://localhost:4000/verificacion/${rows[0].salida}/${entrada.user}"> Link de activación </a>`
             };
 
             await transporter.sendMail(mailOptions);
@@ -466,7 +502,7 @@ const volverPPrincial = async(req,res) =>{
         res.render("principal",{
             titulo: "Pagina de usuario",
             identificado: identificacion(req),
-            grupos: envio.slice(0,2),
+            grupos: envio.slice(0,elementosPorPagina),
             nReg: envio.length,
             idU
         })
@@ -501,7 +537,7 @@ const crearGrupo = async(req,res) =>{
             res.render("principal",{
                 titulo: "Pagina de usuario",
                 identificado: identificacion(req),
-                grupos: envio.slice(0,2),
+                grupos: envio.slice(0,elementosPorPagina),
                 nReg: envio.length,
                 idU: user
             })
@@ -1358,6 +1394,11 @@ const cerrarGrupo = async(req,res) => {
     }
 }
 
+/**
+ * Redirige a la página de recuperación de contraseña
+ * @param {*} req 
+ * @param {*} res 
+ */
 const pagRecuperacion = async(req,res) => {
     res.render("recuperarCuenta",{
         titulo:"Recuperación",
@@ -1365,14 +1406,17 @@ const pagRecuperacion = async(req,res) => {
     })
 }
 
+/**
+ * Desde la página de recuperación de contraseña se envía un email con un enlace para recuperar la contraseña
+ * @param {*} req 
+ * @param {*} res 
+ */
 const recuperacion = async(req,res) => {
     const emailReq = req.body.email;
 
     const existe = await db.execute("SELECT usuario FROM usuarios WHERE email = ?",[
         emailReq
     ]);
-
-    console.log(existe[0][0])
 
     if(existe[0][0] != undefined){
 
@@ -1418,6 +1462,11 @@ const recuperacion = async(req,res) => {
     }
 }
 
+/**
+ * Desde el email se accede a la página de modificación de contraseña, si el código es correcto se permite modificar la contraseña
+ * @param {*} req 
+ * @param {*} res 
+ */
 const pagVerificacionRecuperacion = async (req,res) =>{
     const {verificacion,usuario} = req.params
 
@@ -1449,16 +1498,19 @@ const pagVerificacionRecuperacion = async (req,res) =>{
     }
 }
 
+/**
+ * Recogemos la nueva contraseña y la comprobamos, si son iguales se modifica la contraseña en la base de datos
+ * @param {*} req 
+ * @param {*} res 
+ */
 const verificacionRecuperacion = async (req,res) =>{
     const password = req.body.password;
     const comprobante = req.body.password2;
 
-    console.log(req.session)
-
     if(password == comprobante){
         try{
             await db.execute("CALL modificacionPass(?,?,?)",[
-                password,
+                await hashPassword(password),
                 req.session.usuario,
                 req.session.verificacion
             ])
@@ -1553,8 +1605,9 @@ async function crearPDF(datos, svgContent){
  * @returns {Array} Array de objetos con los grupos que hemos aceptado
  */
 async function grupos(usuario){
-    const grupos = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ? and pertenece.aceptado = 1 and pertenece.activo = 1 limit 3",[
-        usuario
+    const grupos = await db.query("select grupo.grupoid, nombre from pertenece inner join grupo on pertenece.grupoid = grupo.grupoid where pertenece.userid = ? and pertenece.aceptado = 1 and pertenece.activo = 1 limit ?",[
+        usuario,
+        elementosPorPagina+1
     ])
 
     pagActual = 0;
@@ -1588,7 +1641,7 @@ async function redirectPagPrincipal(req,res){
     res.render("principal",{
         titulo: "Pagina de usuario",
         identificado: identificacion(req),
-        grupos: envio.slice(0,2),
+        grupos: envio.slice(0,elementosPorPagina),
         nReg: envio.length,
         idU
     })
@@ -1700,6 +1753,21 @@ function generarAleatorio(){
     }
     return resultado;
 };
+
+/**
+ * Función para hashear una contraseña	
+ * @param {String} password 
+ * @returns 
+ */
+async function hashPassword(password) {
+    return new Promise((resolve, reject) => {
+        bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS, 10), (err, hash) => {
+            if (err) reject(err);
+            else resolve(hash);
+        });
+    });
+}
+
 
 export{
     paginaInicio,

@@ -40,7 +40,7 @@ function siguiente(){
 
         objetivo.innerHTML = impresion;
 
-        if(data.data.length <= 2){
+        if(data.ultimaPagina){
             document.getElementById("siguiente").disabled=true;
             document.getElementById("ultima").disabled=true;
         }
@@ -187,7 +187,7 @@ function ultima(){
 
         objetivo.innerHTML = impresion;
 
-        if(data.data.length <= 2){
+        if(data.ultimaPagina){
             document.getElementById("siguiente").disabled=true;
             document.getElementById("ultima").disabled=true;
         }
