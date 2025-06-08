@@ -425,7 +425,7 @@ const registro = async (req,res)=>{
                 //     'Correo: ' + entrada.email + '\n' +
                 //     'Teléfono: ' + entrada.telefono + '\n'
                 // ,
-                html: `<a href="https://localhost:4000/verificacion/${rows[0].salida}/${entrada.user}"> Link de activación </a>`
+                html: `<a href="https://proyectoservidorcliente.onrender.com/verificacion/${rows[0].salida}/${entrada.user}"> Link de activación </a>`
             };
 
             await transporter.sendMail(mailOptions);
@@ -1444,7 +1444,7 @@ const recuperacion = async(req,res) => {
             //     'Correo: ' + entrada.email + '\n' +
             //     'Teléfono: ' + entrada.telefono + '\n'
             // ,
-            html: `<a href="http://localhost:4000/verificacionRecuperacion/${aleatorio}/${existe[0][0].usuario}"> Link de activación </a>`
+            html: `<a href="https://proyectoservidorcliente.onrender.com/verificacionRecuperacion/${aleatorio}/${existe[0][0].usuario}"> Link de activación </a>`
         };
 
         await transporter.sendMail(mailOptions);
